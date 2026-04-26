@@ -7,6 +7,7 @@ import { updateStats } from './stats';
 const canvasEl = document.getElementById('graph-canvas') as HTMLCanvasElement;
 
 let nodeCounter: Record<string, number> = {};
+let groupCounter = 0;
 
 export function addNode(type: string): void {
   const node = LiteGraph.createNode(type);
@@ -31,6 +32,23 @@ export function addNode(type: string): void {
   ];
 
   graph.add(node);
+}
+
+export function addGroup(): void {
+  const group = new LiteGraph.LGraphGroup('Kapitola ' + (++groupCounter));
+  group.color = '#1e3347';
+  group.font_size = 18;
+
+  const lgCanvas = (graph as unknown as { canvas: LGraphCanvas }).canvas;
+  let center: [number, number] = [canvasEl.width * 0.5, canvasEl.height * 0.5];
+  if (lgCanvas?.convertOffsetToCanvas) {
+    center = lgCanvas.convertOffsetToCanvas([canvasEl.width * 0.5, canvasEl.height * 0.5]);
+  }
+  group.pos  = [center[0] - 220, center[1] - 130];
+  group.size = [440, 300];
+
+  graph.add(group);
+  scheduleSave();
 }
 
 export async function exportRpy(): Promise<void> {

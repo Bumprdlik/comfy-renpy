@@ -12,7 +12,7 @@ import { apiGetGraph } from './api';
 import { scheduleSave, saveGraph, setLastSavedJson, statusEl } from './ui/autosave';
 import { updateStats } from './ui/stats';
 import { renderPanel, clearPanel, updateExit, removeExit, addExit } from './ui/panel';
-import { addNode, exportRpy, doExport, scanFiles, launchRenpy, autoLayout, loadExample } from './ui/toolbar';
+import { addNode, addGroup, exportRpy, doExport, scanFiles, launchRenpy, autoLayout, loadExample } from './ui/toolbar';
 import { initHistory, captureHistory, undo, redo } from './ui/history';
 import { initSearch } from './ui/search';
 import { initMinimap } from './ui/minimap';
@@ -86,10 +86,12 @@ document.addEventListener('keydown', (e: KeyboardEvent) => {
     case 'i': addNode('renpy/item');      break;
     case 'c': addNode('renpy/character'); break;
     case 'n': addNode('renpy/note');      break;
+    case 'g': addGroup();                 break;
   }
 });
 
 window.addNode          = addNode;
+window.addGroup         = addGroup;
 window.saveGraph        = saveGraph;
 window.validateGraph    = validateGraph;
 window.exportRpy        = exportRpy;

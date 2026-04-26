@@ -37,12 +37,22 @@ declare class LGraphNode {
   configure(data: Record<string, unknown>): void;
 }
 
+declare class LGraphGroup {
+  title: string;
+  color: string;
+  font_size: number;
+  pos: [number, number];
+  size: [number, number];
+  constructor(title?: string);
+}
+
 declare class LGraph {
   _nodes: LGraphNode[];
+  _groups: LGraphGroup[];
   links: Record<number, unknown>;
   onAfterChange?: () => void;
 
-  add(node: LGraphNode): void;
+  add(node: LGraphNode | LGraphGroup): void;
   getNodeById(id: number): LGraphNode | null;
   serialize(): Record<string, unknown>;
   configure(data: Record<string, unknown>): void;
@@ -79,6 +89,8 @@ declare const LiteGraph: {
   LGraphNode: typeof LGraphNode;
   LGraphCanvas: typeof LGraphCanvas;
 
+  LGraphGroup: typeof LGraphGroup;
+
   registerNodeType(type: string, nodeClass: new () => LGraphNode): void;
   createNode(type: string): LGraphNode | null;
 };
@@ -109,4 +121,5 @@ interface Window {
   removeExit(i: number): void;
   addExit(): void;
   loadExample(): Promise<void>;
+  addGroup(): void;
 }
