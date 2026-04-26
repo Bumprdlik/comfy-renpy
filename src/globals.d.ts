@@ -43,6 +43,7 @@ declare class LGraph {
   onAfterChange?: () => void;
 
   add(node: LGraphNode): void;
+  getNodeById(id: number): LGraphNode | null;
   serialize(): Record<string, unknown>;
   configure(data: Record<string, unknown>): void;
   start(): void;
@@ -59,6 +60,8 @@ declare class LGraphCanvas {
   constructor(canvas: HTMLCanvasElement, graph: LGraph);
   setDirty(fg: boolean, bg?: boolean): void;
   convertOffsetToCanvas(pos: [number, number]): [number, number];
+  centerOnNode(node: LGraphNode): void;
+  selectNode(node: LGraphNode, add?: boolean): void;
 }
 
 declare const LiteGraph: {

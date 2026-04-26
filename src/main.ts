@@ -13,6 +13,8 @@ import { scheduleSave, saveGraph, setLastSavedJson, statusEl } from './ui/autosa
 import { updateStats } from './ui/stats';
 import { renderPanel, clearPanel, updateExit, removeExit, addExit } from './ui/panel';
 import { addNode, exportRpy, doExport, scanFiles, launchRenpy, autoLayout, loadExample } from './ui/toolbar';
+import { initHistory, captureHistory, undo, redo } from './ui/history';
+import { initSearch } from './ui/search';
 import { openConfig, closeConfig, cfgOverlayClick, saveConfig } from './ui/modals/config';
 import { openHelp, closeHelp, helpTab, helpOverlayClick, maybeShowHelp } from './ui/modals/help';
 import { validateGraph, closeVal, valOverlayClick } from './ui/modals/validate';
@@ -47,7 +49,7 @@ const ro = new ResizeObserver(resizeCanvas);
 ro.observe(canvasWrap);
 resizeCanvas();
 
-graph.onAfterChange = () => { scheduleSave(); updateStats(); refreshDuplicateIds(); };
+graph.onAfterChange = () => { captureHistory(); scheduleSave(); updateStats(); refreshDuplicateIds(); };
 
 lgCanvas.onNodeSelected = (node: LGraphNode) => {
   setSelectedNode(node);
@@ -63,8 +65,19 @@ canvasEl.addEventListener('pointerdown', () => {
 
 document.addEventListener('keydown', (e: KeyboardEvent) => {
   if (e.key === 'Escape') { closeConfig(); closeHelp(); closeVal(); closePreview(); return; }
+
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+    const si = document.getElementById('search-input') as HTMLInputElement | null;
+    if (si) { e.preventDefault(); si.focus(); si.select(); }
+    return;
+  }
+
   const tag = (e.target as HTMLElement).tagName;
   if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); return; }
+  if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) { e.preventDefault(); redo(); return; }
+
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   switch (e.key.toLowerCase()) {
     case 'l': addNode('renpy/location');  break;
@@ -107,6 +120,7 @@ window.loadExample      = loadExample;
     if (data) {
       graph.configure(data);
       setLastSavedJson(JSON.stringify(graph.serialize()));
+      initHistory();
       statusEl.textContent = '✓ načteno';
       statusEl.style.color = '#2ecc71';
       updateStats();
@@ -116,5 +130,6 @@ window.loadExample      = loadExample;
     console.error('Chyba načítání grafu:', e);
   }
   graph.start();
+  initSearch(lgCanvas);
   maybeShowHelp();
 })();
