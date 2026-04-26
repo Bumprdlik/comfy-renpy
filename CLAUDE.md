@@ -50,7 +50,7 @@ npm start      # Jen Express :3001 (servíruje dist/)
 | GET | `/api/graph` | Načte `comfy-graph.json` |
 | PUT | `/api/graph` | Uloží `comfy-graph.json` (auto-save z frontendu každé 2s) |
 | POST | `/api/validate` | Validuje graf (duplicitní ID, chybějící location_id u eventů, …) |
-| POST | `/api/export-rpy` | Generuje `.rpy` soubory z grafu (body = `graph.serialize()`) |
+| POST | `/api/export-rpy` | Generuje `.rpy` soubory z grafu — Location→`locations/`, Event→`events/`, Quest→`quests/` |
 | POST | `/api/preview-rpy` | Vrátí preview `.rpy` obsahu pro konkrétní uzel (bez zápisu) |
 | GET | `/api/scan` | Zkontroluje stav `.rpy` souborů pro každý uzel v grafu |
 | POST | `/api/launch` | Spustí Ren'Py exe (detached) |
@@ -64,6 +64,7 @@ npm start      # Jen Express :3001 (servíruje dist/)
 | `renpy/item` | Fialová | žádné | `id`, `name`, `description` |
 | `renpy/character` | Teal | žádné | `id`, `name`, `voice`, `sprite_id` |
 | `renpy/note` | Žlutohnědá | žádné | `text` (zobrazuje se přímo na uzlu, jen pro tvůrce) |
+| `renpy/quest` | Tmavě červená | žádné | `id`, `title`, `description`, `stages` (newline-separated) |
 
 ### Location exits (dynamické porty)
 
@@ -104,6 +105,10 @@ Pokud `gameDir` není nastaven, exportuje do `{projectDir}/output/`.
 - **stub** — soubor existuje, marker přítomen, žádný dialog
 - **written** — soubor má dialogové řádky (regex na `"`, `jump`, `menu`, `show`, atd.)
 - **drift** — soubor existuje bez COMFY markeru, nebo soubor bez uzlu v grafu (orphan)
+
+## Co NEDĚLAT
+
+- **Příkladový graf**: `public/example-graph.json` — načte se tlačítkem "⬡ Příklad" v toolbaru (přepíše aktuální graf po potvrzení)
 
 ## Co NEDĚLAT
 

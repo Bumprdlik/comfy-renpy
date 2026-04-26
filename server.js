@@ -206,6 +206,47 @@ app.post('/api/export-rpy', (req, res) => {
     }
   }
 
+  // ── Quest nodes ──
+  const questDir = path.join(gameDir, 'quests');
+  for (const node of Object.values(nodeById)) {
+    if (node.type !== 'renpy/quest') continue;
+    const p = node.properties;
+    if (!p.id) { errors.push('Quest bez ID přeskočen'); continue; }
+
+    const questId = p.id;
+    const filePath = path.join(questDir, `${questId}.rpy`);
+    try { fs.mkdirSync(questDir, { recursive: true }); } catch (_e) {}
+
+    const stages = (p.stages || '').split('\n').map(s => s.trim()).filter(Boolean);
+    const headerLines = [
+      `# Quest: ${p.title || questId}`,
+      ...(p.description ? [`# ${p.description}`] : []),
+      `default ${questId}_active = False`,
+      `default ${questId}_stage = 0`,
+      ...(stages.length ? ['# Fáze:', ...stages.map((s, i) => `#   ${i}: ${s}`)] : []),
+    ].join('\n');
+
+    try {
+      const existing = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : null;
+      let content;
+      if (!existing) {
+        content = [
+          markerBlock(questId, 'header', headerLines),
+          '',
+          '# Zde piš quest logiku (podmínky, checkpointy, apod.)',
+          '',
+        ].join('\n');
+        created.push(`quests/${questId}.rpy`);
+      } else {
+        content = updateMarkerRegion(existing, questId, 'header', headerLines);
+        updated.push(`quests/${questId}.rpy`);
+      }
+      fs.writeFileSync(filePath, content, 'utf8');
+    } catch (e) {
+      errors.push(`quests/${questId}.rpy: ${e.message}`);
+    }
+  }
+
   const note = !config.gameDir
     ? `gameDir není nastaven — soubory uloženy do ${path.join(__dirname, 'output')}`
     : null;
@@ -215,9 +256,10 @@ app.post('/api/export-rpy', (req, res) => {
 
 // GET /api/scan
 app.get('/api/scan', (req, res) => {
-  const gameDir = config.gameDir || path.join(__dirname, 'output');
-  const locDir  = path.join(gameDir, 'locations');
-  const evtDir  = path.join(gameDir, 'events');
+  const gameDir  = config.gameDir || path.join(__dirname, 'output');
+  const locDir   = path.join(gameDir, 'locations');
+  const evtDir   = path.join(gameDir, 'events');
+  const questDir = path.join(gameDir, 'quests');
 
   const graphData = (() => {
     const p = graphFile();
@@ -236,8 +278,9 @@ app.get('/api/scan', (req, res) => {
     if (!id) continue;
 
     let filePath;
-    if (node.type === 'renpy/location') filePath = path.join(locDir, `${id}.rpy`);
-    else if (node.type === 'renpy/event') filePath = path.join(evtDir, `${id}.rpy`);
+    if (node.type === 'renpy/location')   filePath = path.join(locDir,   `${id}.rpy`);
+    else if (node.type === 'renpy/event') filePath = path.join(evtDir,   `${id}.rpy`);
+    else if (node.type === 'renpy/quest') filePath = path.join(questDir, `${id}.rpy`);
     else continue;
 
     if (!fs.existsSync(filePath)) {
@@ -270,7 +313,7 @@ app.get('/api/scan', (req, res) => {
   const knownIds = new Set(
     (graphData.nodes || []).map(n => n.properties && n.properties.id).filter(Boolean)
   );
-  for (const dir of [locDir, evtDir]) {
+  for (const dir of [locDir, evtDir, questDir]) {
     if (!fs.existsSync(dir)) continue;
     for (const file of fs.readdirSync(dir)) {
       if (!file.endsWith('.rpy')) continue;
@@ -297,7 +340,7 @@ app.post('/api/validate', (req, res) => {
 
   for (const node of nodes) {
     const type = node.type;
-    if (!['renpy/location','renpy/event','renpy/item','renpy/character'].includes(type)) continue;
+    if (!['renpy/location','renpy/event','renpy/item','renpy/character','renpy/quest'].includes(type)) continue;
     const p  = node.properties || {};
     const id = p.id;
     if (!id) {

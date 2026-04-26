@@ -12,6 +12,7 @@ const TYPE_NAMES: Record<string, string> = {
   'renpy/item':      'Item',
   'renpy/character': 'Character',
   'renpy/note':      'Note',
+  'renpy/quest':     'Quest',
 };
 
 function makeField(id: string, label: string, type: string, value: unknown, opts: { choices?: Array<{value: string; label: string}> } = {}): string {
@@ -87,6 +88,11 @@ export function renderPanel(node: LGraphNode): void {
 
   } else if (node.type === 'renpy/note') {
     html += makeField('prop-note-text', 'Text', 'textarea', p['text']);
+
+  } else if (node.type === 'renpy/quest') {
+    html += makeField('prop-title',  'Název questu', 'text',     p['title']);
+    html += makeField('prop-desc',   'Popis',         'textarea', p['description']);
+    html += makeField('prop-stages', 'Fáze (každá na řádku)', 'textarea', p['stages']);
   }
 
   propsBody.innerHTML = html;
@@ -142,6 +148,10 @@ function attachListeners(node: LGraphNode): void {
       node.setDirtyCanvas(true, true);
       scheduleSave();
     });
+  } else if (node.type === 'renpy/quest') {
+    bind('prop-title',  'title');
+    bind('prop-desc',   'description');
+    bind('prop-stages', 'stages');
   }
 }
 

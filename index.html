@@ -16,6 +16,7 @@
   <button class="node-btn itm" onclick="addNode('renpy/item')">+ Item</button>
   <button class="node-btn chr" onclick="addNode('renpy/character')">+ Character</button>
   <button class="node-btn" style="border-left-color:#886600" onclick="addNode('renpy/note')">+ Note</button>
+  <button class="node-btn" style="border-left-color:#8b1a1a" onclick="addNode('renpy/quest')">+ Quest</button>
   <div class="sep"></div>
   <button class="primary" onclick="saveGraph()">Uložit</button>
   <button onclick="validateGraph()">✓ Zkontrolovat</button>
@@ -25,6 +26,7 @@
   <button onclick="autoLayout()">⊞ Auto-layout</button>
   <button onclick="launchRenpy()">▶ Spustit</button>
   <div class="sep"></div>
+  <button onclick="loadExample()">⬡ Příklad</button>
   <button onclick="openConfig()">⚙ Nastavení</button>
   <button onclick="openHelp()">? Nápověda</button>
   <span id="save-status"></span><span id="graph-stats"></span>
@@ -174,6 +176,19 @@
             <div class="prop-row"><span class="prop-name">name</span><span class="prop-desc">Jméno postavy zobrazované v dialogovém boxu.</span></div>
             <div class="prop-row"><span class="prop-name">voice</span><span class="prop-desc">Hlasový tag pro voice acting (<code>voice_tag=</code>).</span></div>
             <div class="prop-row"><span class="prop-name">sprite_id</span><span class="prop-desc">ID spritu postavy pro <code>show {sprite_id}</code>.</span></div>
+          </div>
+        </div>
+
+        <div class="node-card">
+          <div class="node-card-header" style="background:#2d0608">
+            <span class="nc-dot" style="background:#c0303a"></span> Quest
+          </div>
+          <div class="node-card-body">
+            <p>Quest / úkol. Generuje se do <code>quests/{id}.rpy</code> s proměnnými pro sledování postupu.</p>
+            <div class="prop-row"><span class="prop-name">id</span><span class="prop-desc">Unikátní identifikátor questu — použije se jako prefix proměnných (<code>{id}_active</code>, <code>{id}_stage</code>).</span></div>
+            <div class="prop-row"><span class="prop-name">title</span><span class="prop-desc">Zobrazovaný název questu.</span></div>
+            <div class="prop-row"><span class="prop-name">description</span><span class="prop-desc">Popis questu pro tvůrce.</span></div>
+            <div class="prop-row"><span class="prop-name">stages</span><span class="prop-desc">Seznam fází — každá fáze na samostatném řádku. Exportují se jako číslované komentáře a hodnoty <code>{id}_stage</code>.</span></div>
           </div>
         </div>
 

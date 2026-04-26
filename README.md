@@ -9,7 +9,7 @@ Navrhuješ místnosti, propojuješ je exity, přidáváš eventy, itemy a postav
 ## Funkce
 
 - **Grafický editor** místností a jejich propojení (LiteGraph.js)
-- **5 typů uzlů**: Location, Event, Item, Character, Note
+- **6 typů uzlů**: Location, Event, Item, Character, Note, Quest
 - **Validace** grafu před exportem (duplicitní ID, chybějící vazby)
 - **Export do .rpy** — generuje stub soubory s `[COMFY-START/END]` markery
 - **Preview** — náhled vygenerovaného `.rpy` bez zápisu na disk
@@ -72,6 +72,9 @@ Postava s hlasem/stylem (pro AI generování dialogů) a sprite ID.
 
 ### Note
 Volná textová poznámka přímo na canvasu. Exportem ani scanem není dotčena.
+
+### Quest
+Quest / úkol s fázemi. Generuje `.rpy` do `{gameDir}/quests/` s proměnnými `{id}_active` a `{id}_stage` pro sledování postupu hráče.
 
 ## Export a round-trip
 

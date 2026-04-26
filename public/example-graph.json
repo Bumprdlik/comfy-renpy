@@ -1,0 +1,264 @@
+{
+  "last_node_id": 14,
+  "last_link_id": 6,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "renpy/note",
+      "pos": [20, 20],
+      "size": [260, 90],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "properties": {
+        "text": "Ukázkový graf: Vesnice Křivákov\nUprav uzly, propoj exity, exportuj .rpy\na začni psát dialogy!"
+      }
+    },
+    {
+      "id": 2,
+      "type": "renpy/location",
+      "pos": [220, 90],
+      "size": [220, 46],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {"name": "", "type": "connection", "link": 2},
+        {"name": "", "type": "connection", "link": null}
+      ],
+      "outputs": [
+        {"name": "jih", "type": "connection", "links": [1]}
+      ],
+      "properties": {
+        "id": "les",
+        "label": "Zakletý les",
+        "description": "Temný les za vesnicí. Říká se, že se tu v noci pohybují stíny.",
+        "exits": [{"name": "jih"}]
+      }
+    },
+    {
+      "id": 3,
+      "type": "renpy/location",
+      "pos": [220, 270],
+      "size": [220, 86],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {"name": "", "type": "connection", "link": 1},
+        {"name": "", "type": "connection", "link": 4},
+        {"name": "", "type": "connection", "link": 6},
+        {"name": "", "type": "connection", "link": null}
+      ],
+      "outputs": [
+        {"name": "sever", "type": "connection", "links": [2]},
+        {"name": "východ", "type": "connection", "links": [3]},
+        {"name": "jih", "type": "connection", "links": [5]}
+      ],
+      "properties": {
+        "id": "namesti",
+        "label": "Náměstí",
+        "description": "Srdce Křivákova. Kašna uprostřed, kolem kvetoucí záhony. Na dlažbě jsou stopy starých bitev.",
+        "exits": [{"name": "sever"}, {"name": "východ"}, {"name": "jih"}]
+      }
+    },
+    {
+      "id": 4,
+      "type": "renpy/location",
+      "pos": [530, 270],
+      "size": [220, 46],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {"name": "", "type": "connection", "link": 3},
+        {"name": "", "type": "connection", "link": null}
+      ],
+      "outputs": [
+        {"name": "západ", "type": "connection", "links": [4]}
+      ],
+      "properties": {
+        "id": "hospoda",
+        "label": "Hospoda U Dvou Štítů",
+        "description": "Útulná hospoda s praskajícím krbem. Hospodský František je tu přes den i přes noc.",
+        "exits": [{"name": "západ"}]
+      }
+    },
+    {
+      "id": 5,
+      "type": "renpy/location",
+      "pos": [220, 470],
+      "size": [220, 46],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {"name": "", "type": "connection", "link": 5},
+        {"name": "", "type": "connection", "link": null}
+      ],
+      "outputs": [
+        {"name": "sever", "type": "connection", "links": [6]}
+      ],
+      "properties": {
+        "id": "kovarna",
+        "label": "Kovárna mistra Pavla",
+        "description": "Hluk kovadliny se line celou vesnicí. Pavel kuje od úsvitu do soumraku.",
+        "exits": [{"name": "sever"}]
+      }
+    },
+    {
+      "id": 6,
+      "type": "renpy/event",
+      "pos": [530, 90],
+      "size": [210, 60],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "properties": {
+        "id": "lesni_nebezpeci",
+        "location_id": "les",
+        "trigger": "auto_enter",
+        "trigger_label": "",
+        "prerequisite": "",
+        "time": "night",
+        "repeatable": false,
+        "priority": 10,
+        "notes": "Setkání s tajemným stínem. Spustí se jen při první noční návštěvě lesa."
+      }
+    },
+    {
+      "id": 7,
+      "type": "renpy/event",
+      "pos": [530, 440],
+      "size": [210, 60],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "properties": {
+        "id": "elara_pribeh",
+        "location_id": "hospoda",
+        "trigger": "menu_choice",
+        "trigger_label": "Zeptat se cizinky na její příběh",
+        "prerequisite": "not elara_pribeh_seen",
+        "time": "any",
+        "repeatable": false,
+        "priority": 5,
+        "notes": "Elara odhalí, proč přišla do Křivákova a co hledá v lese."
+      }
+    },
+    {
+      "id": 8,
+      "type": "renpy/character",
+      "pos": [840, 80],
+      "size": [190, 40],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "properties": {
+        "id": "elara",
+        "name": "Elara",
+        "voice": "mysteriózní, tichá, elfský přízvuk",
+        "sprite_id": "elara"
+      }
+    },
+    {
+      "id": 9,
+      "type": "renpy/character",
+      "pos": [840, 160],
+      "size": [190, 40],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "properties": {
+        "id": "frantisek",
+        "name": "František",
+        "voice": "veselý, hlasitý, hospodský",
+        "sprite_id": "frantisek"
+      }
+    },
+    {
+      "id": 10,
+      "type": "renpy/character",
+      "pos": [840, 240],
+      "size": [190, 40],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "properties": {
+        "id": "mistr_pavel",
+        "name": "Mistr Pavel",
+        "voice": "přísný, stručný, unavený",
+        "sprite_id": "mistr_pavel"
+      }
+    },
+    {
+      "id": 11,
+      "type": "renpy/item",
+      "pos": [840, 360],
+      "size": [190, 40],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "properties": {
+        "id": "stara_mapa",
+        "name": "Stará mapa",
+        "description": "Roztrhaná mapa s vyznačeným místem hluboko v lese. Rukopis je elfský."
+      }
+    },
+    {
+      "id": 12,
+      "type": "renpy/item",
+      "pos": [840, 440],
+      "size": [190, 40],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "properties": {
+        "id": "lektvary",
+        "name": "Léčivé lektvary",
+        "description": "Tři lahvičky s rudou tekutinou. František je prodává za přemrštěnou cenu."
+      }
+    },
+    {
+      "id": 13,
+      "type": "renpy/item",
+      "pos": [840, 520],
+      "size": [190, 40],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "properties": {
+        "id": "zacarovany_mec",
+        "name": "Začarovaný meč",
+        "description": "Meč s runovými nápisy na čepeli. Pavel odmítá říct, odkud ho má."
+      }
+    },
+    {
+      "id": 14,
+      "type": "renpy/quest",
+      "pos": [840, 640],
+      "size": [220, 55],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "properties": {
+        "id": "tajemstvi_lesa",
+        "title": "Tajemství zakletého lesa",
+        "description": "Elara prosí o pomoc s odhalením starého kouzla v lese za vesnicí.",
+        "stages": "Promluvit s Elarou v hospodě\nProzkoumat les v noci\nNajít starou mapu\nOdnést mapu Pavlovi do kovárny\nVrátit se k Elaře s odpovědí"
+      }
+    }
+  ],
+  "links": [
+    [1, 2, 0, 3, 0, "connection"],
+    [2, 3, 0, 2, 0, "connection"],
+    [3, 3, 1, 4, 0, "connection"],
+    [4, 4, 0, 3, 1, "connection"],
+    [5, 3, 2, 5, 0, "connection"],
+    [6, 5, 0, 3, 2, "connection"]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {},
+  "version": 0.4
+}

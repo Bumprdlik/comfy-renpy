@@ -39,6 +39,14 @@ export interface NoteProps {
   text: string;
 }
 
+export interface QuestProps {
+  [key: string]: unknown;
+  id: string;
+  title: string;
+  description: string;
+  stages: string;
+}
+
 export type ScanStatus = 'written' | 'stub' | 'missing' | 'drift';
 
 export interface ValidationResult {

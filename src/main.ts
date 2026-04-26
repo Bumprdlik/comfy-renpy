@@ -5,13 +5,14 @@ import './graph/nodes/EventNode';
 import './graph/nodes/ItemNode';
 import './graph/nodes/CharacterNode';
 import './graph/nodes/NoteNode';
+import './graph/nodes/QuestNode';
 
 import { graph, refreshDuplicateIds, setSelectedNode } from './graph/state';
 import { apiGetGraph } from './api';
 import { scheduleSave, saveGraph, setLastSavedJson, statusEl } from './ui/autosave';
 import { updateStats } from './ui/stats';
 import { renderPanel, clearPanel, updateExit, removeExit, addExit } from './ui/panel';
-import { addNode, exportRpy, doExport, scanFiles, launchRenpy, autoLayout } from './ui/toolbar';
+import { addNode, exportRpy, doExport, scanFiles, launchRenpy, autoLayout, loadExample } from './ui/toolbar';
 import { openConfig, closeConfig, cfgOverlayClick, saveConfig } from './ui/modals/config';
 import { openHelp, closeHelp, helpTab, helpOverlayClick, maybeShowHelp } from './ui/modals/help';
 import { validateGraph, closeVal, valOverlayClick } from './ui/modals/validate';
@@ -98,6 +99,7 @@ window.previewOverlayClick = previewOverlayClick;
 window.updateExit       = updateExit;
 window.removeExit       = removeExit;
 window.addExit          = addExit;
+window.loadExample      = loadExample;
 
 (async () => {
   try {

@@ -105,4 +105,5 @@ interface Window {
   updateExit(i: number, value: string): void;
   removeExit(i: number): void;
   addExit(): void;
+  loadExample(): Promise<void>;
 }

@@ -1,7 +1,8 @@
-import { graph } from '../graph/state';
-import { scheduleSave, saveGraph, statusEl } from './autosave';
+import { graph, refreshDuplicateIds } from '../graph/state';
+import { scheduleSave, saveGraph, setLastSavedJson, statusEl } from './autosave';
 import { apiExportRpy, apiScan, apiLaunch, apiValidate } from '../api';
 import { showValModal } from './modals/validate';
+import { updateStats } from './stats';
 
 const canvasEl = document.getElementById('graph-canvas') as HTMLCanvasElement;
 
@@ -135,6 +136,24 @@ export function autoLayout(): void {
 
   graph.setDirtyCanvas(true, true);
   scheduleSave();
+}
+
+export async function loadExample(): Promise<void> {
+  if (!confirm('Načtením příkladu se přepíše aktuální graf. Pokračovat?')) return;
+  try {
+    const r = await fetch('/example-graph.json');
+    if (!r.ok) throw new Error('Soubor nenalezen');
+    const data = await r.json() as Record<string, unknown>;
+    graph.configure(data);
+    const json = JSON.stringify(graph.serialize());
+    setLastSavedJson(json);
+    await saveGraph();
+    updateStats();
+    refreshDuplicateIds();
+    graph.setDirtyCanvas(true, true);
+  } catch (e) {
+    alert('Chyba načítání příkladu: ' + (e as Error).message);
+  }
 }
 
 export { saveGraph };
