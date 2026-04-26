@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comfy-Renpy</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litegraph.js@0.7.18/css/litegraph.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1a1a1a;
+      color: #ddd;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Toolbar ── */
+    #toolbar {
+      background: #252525;
+      border-bottom: 1px solid #3a3a3a;
+      padding: 5px 10px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+      min-height: 38px;
+    }
+    #toolbar .logo {
+      font-weight: 700;
+      font-size: 14px;
+      color: #ccc;
+      margin-right: 6px;
+      letter-spacing: -0.3px;
+    }
+    .sep { width: 1px; background: #444; height: 20px; margin: 0 3px; }
+
+    button {
+      background: #333;
+      border: 1px solid #4a4a4a;
+      color: #ccc;
+      padding: 3px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.15s;
+    }
+    button:hover { background: #444; }
+    button:active { background: #222; }
+
+    button.primary { background: #1c4f7a; border-color: #2d6fa0; color: #aee; }
+    button.primary:hover { background: #255e90; }
+
+    /* coloured left stripe per node type */
+    .node-btn { border-left: 3px solid #666; padding-left: 7px; }
+    .node-btn.loc { border-left-color: #2471a3; }
+    .node-btn.evt { border-left-color: #c0601a; }
+    .node-btn.itm { border-left-color: #8e44ad; }
+    .node-btn.chr { border-left-color: #1a8a5e; }
+
+    #save-status {
+      font-size: 11px;
+      color: #666;
+      margin-left: 4px;
+      min-width: 70px;
+    }
+
+    /* ── Workspace ── */
+    #workspace {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    #canvas-wrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+    #graph-canvas {
+      display: block;
+    }
+
+    /* ── Properties panel ── */
+    #props-panel {
+      width: 290px;
+      background: #202020;
+      border-left: 1px solid #3a3a3a;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    #props-header {
+      background: #2a2a2a;
+      border-bottom: 1px solid #3a3a3a;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #999;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    #props-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      scrollbar-width: thin;
+      scrollbar-color: #3a3a3a #1a1a1a;
+    }
+    #props-body .placeholder {
+      color: #444;
+      font-size: 12px;
+      text-align: center;
+      margin-top: 50px;
+      line-height: 1.8;
+    }
+
+    /* ── Form fields ── */
+    .field { margin-bottom: 10px; }
+    .field label {
+      display: block;
+      font-size: 10px;
+      color: #666;
+      margin-bottom: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    .field input,
+    .field textarea,
+    .field select {
+      width: 100%;
+      background: #2a2a2a;
+      border: 1px solid #444;
+      color: #ccc;
+      padding: 5px 8px;
+      border-radius: 3px;
+      font-size: 12px;
+      font-family: inherit;
+    }
+    .field input:focus,
+    .field textarea:focus,
+    .field select:focus {
+      outline: none;
+      border-color: #2d82b7;
+    }
+    .field textarea { resize: vertical; min-height: 55px; }
+    .field input[type="number"] { width: 80px; }
+    .field .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #bbb;
+    }
+    .field .checkbox-row input[type="checkbox"] {
+      width: auto;
+      accent-color: #2d82b7;
+    }
+
+    .section-div { border: none; border-top: 1px solid #333; margin: 10px 0 8px; }
+    .section-label {
+      font-size: 10px;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 6px;
+    }
+
+    /* ── Exits list ── */
+    .exit-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+    .exit-row input { flex: 1; }
+    .exit-row .del-btn {
+      background: #3a2020;
+      border-color: #5a3030;
+      color: #c88;
+      padding: 3px 7px;
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+    .exit-row .del-btn:hover { background: #5a2020; }
+
+    .add-exit-btn {
+      width: 100%;
+      background: #1e3a1e;
+      border-color: #2d5a2d;
+      color: #8c8;
+      font-size: 11px;
+      margin-top: 4px;
+    }
+    .add-exit-btn:hover { background: #254a25; }
+  </style>
+</head>
+<body>
+
+<div id="toolbar">
+  <span class="logo">⬡ Comfy-Renpy</span>
+  <div class="sep"></div>
+  <button class="node-btn loc" onclick="addNode('renpy/location')">+ Location</button>
+  <button class="node-btn evt" onclick="addNode('renpy/event')">+ Event</button>
+  <button class="node-btn itm" onclick="addNode('renpy/item')">+ Item</button>
+  <button class="node-btn chr" onclick="addNode('renpy/character')">+ Character</button>
+  <div class="sep"></div>
+  <button class="primary" onclick="saveGraph()">Uložit</button>
+  <button onclick="exportRpy()">Export .rpy</button>
+  <button onclick="scanFiles()">Scan</button>
+  <button onclick="launchRenpy()">▶ Spustit</button>
+  <span id="save-status"></span>
+</div>
+
+<div id="workspace">
+  <div id="canvas-wrap">
+    <canvas id="graph-canvas"></canvas>
+  </div>
+  <div id="props-panel">
+    <div id="props-header">Vlastnosti</div>
+    <div id="props-body">
+      <div class="placeholder">
+        Klikni na uzel<br>pro zobrazení vlastností.<br><br>
+        Pravý klik na canvas<br>pro kontextové menu.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/litegraph.js@0.7.18/build/litegraph.js"></script>
+<script>
+// ════════════════════════════════════════════════════════
+//  LiteGraph global config
+// ════════════════════════════════════════════════════════
+LiteGraph.NODE_TITLE_HEIGHT = 22;
+LiteGraph.NODE_SLOT_HEIGHT = 20;
+LiteGraph.NODE_WIDTH = 220;
+LiteGraph.DEFAULT_SHADOW_OFFSET_X = 0;
+LiteGraph.DEFAULT_SHADOW_OFFSET_Y = 0;
+
+// Typed socket colours
+LiteGraph.slot_types_default_color = {};
+LiteGraph.slot_types_default_color["connection"] = "#5599ee";
+LiteGraph.slot_types_default_color["event"]      = "#ee9933";
+LiteGraph.slot_types_default_color["item"]        = "#bb55ee";
+LiteGraph.slot_types_default_color["char"]        = "#33cc88";
+
+// ════════════════════════════════════════════════════════
+//  Helpers
+// ════════════════════════════════════════════════════════
+const STATUS_COLOR = {
+  written: "#2ecc71",
+  stub:    "#f39c12",
+  missing: "#7f8c8d",
+  drift:   "#e74c3c",
+};
+
+function drawStatusBadge(ctx, node) {
+  if (!node._status) return;
+  const c = STATUS_COLOR[node._status];
+  if (!c) return;
+  ctx.save();
+  ctx.fillStyle = c;
+  ctx.beginPath();
+  ctx.arc(node.size[0] - 9, 9, 5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+// ════════════════════════════════════════════════════════
+//  NODE: Location
+// ════════════════════════════════════════════════════════
+class LocationNode extends LiteGraph.LGraphNode {
+  constructor() {
+    super();
+    // Unnamed input slot — expands automatically as connections arrive
+    this.addInput("", "connection");
+    this.properties = {
+      id: "",
+      label: "New Location",
+      description: "",
+      exits: [{ name: "exit" }],
+    };
+    this.color   = "#1a4f72";
+    this.bgcolor = "#0d2d42";
+    this._status = null;
+    this.syncExitSlots();
+  }
+
+  getTitle() {
+    return this.properties.label || this.properties.id || "Location";
+  }
+
+  // Keep exactly one trailing blank input (auto-expands for multiple incoming connections)
+  _ensureOneBlankInput() {
+    if (!this.inputs) { this.addInput("", "connection"); return; }
+    // Count trailing blanks (unconnected inputs at the end)
+    let blanks = 0;
+    for (let i = this.inputs.length - 1; i >= 0; i--) {
+      if (!this.inputs[i].link) blanks++;
+      else break;
+    }
+    // Remove extra trailing blanks
+    while (blanks > 1) {
+      this.removeInput(this.inputs.length - 1);
+      blanks--;
+    }
+    // Add one if there are none
+    if (blanks === 0) this.addInput("", "connection");
+  }
+
+  // Called by LiteGraph when any connection is added or removed
+  onConnectionsChange(type) {
+    if (type !== LiteGraph.INPUT) return;
+    this._ensureOneBlankInput();
+    this.setDirtyCanvas(true, true);
+  }
+
+  syncExitSlots() {
+    // Only manages outputs — inputs are handled by _ensureOneBlankInput
+    while (this.outputs && this.outputs.length > 0) {
+      this.removeOutput(this.outputs.length - 1);
+    }
+    for (const exit of (this.properties.exits || [])) {
+      this.addOutput(exit.name || "exit", "connection");
+    }
+    if (this.size) this.size[0] = Math.max(this.size[0], 200);
+  }
+
+  onConfigure() {
+    this.syncExitSlots();
+    this._ensureOneBlankInput();
+  }
+
+  onDrawForeground(ctx) {
+    if (this.flags.collapsed) return;
+    drawStatusBadge(ctx, this);
+  }
+}
+LocationNode.title = "Location";
+LiteGraph.registerNodeType("renpy/location", LocationNode);
+
+// ════════════════════════════════════════════════════════
+//  NODE: Event
+// ════════════════════════════════════════════════════════
+class EventNode extends LiteGraph.LGraphNode {
+  constructor() {
+    super();
+    this.properties = {
+      id: "",
+      location_id: "",
+      trigger: "auto_enter",
+      trigger_label: "",
+      prerequisite: "",
+      time: "any",
+      repeatable: false,
+      priority: 0,
+      notes: "",
+    };
+    this.color   = "#6a2800";
+    this.bgcolor = "#3d1800";
+    this._status = null;
+    this.size = [210, 60];
+  }
+
+  getTitle() {
+    return this.properties.id || "Event";
+  }
+
+  onDrawForeground(ctx) {
+    if (this.flags.collapsed) return;
+    // Show "@ location" subtitle
+    if (this.properties.location_id) {
+      ctx.save();
+      ctx.font = "10px sans-serif";
+      ctx.fillStyle = "#996644";
+      ctx.textAlign = "left";
+      ctx.fillText("@ " + this.properties.location_id, 5, 14);
+      ctx.restore();
+    }
+    // Trigger type badge
+    const triggerColors = { auto_enter: "#885522", menu_choice: "#225588", condition: "#228855" };
+    ctx.save();
+    ctx.font = "9px sans-serif";
+    ctx.fillStyle = triggerColors[this.properties.trigger] || "#666";
+    ctx.fillText(this.properties.trigger || "", 4, this.size[1] - 4);
+    ctx.restore();
+    drawStatusBadge(ctx, this);
+  }
+}
+EventNode.title = "Event";
+LiteGraph.registerNodeType("renpy/event", EventNode);
+
+// ════════════════════════════════════════════════════════
+//  NODE: Item
+// ════════════════════════════════════════════════════════
+class ItemNode extends LiteGraph.LGraphNode {
+  constructor() {
+    super();
+    this.properties = {
+      id: "",
+      name: "New Item",
+      description: "",
+    };
+    this.color   = "#4a1a66";
+    this.bgcolor = "#2a0e3d";
+    this.size = [190, 40];
+  }
+
+  getTitle() {
+    return this.properties.name || this.properties.id || "Item";
+  }
+
+  onDrawForeground(ctx) {
+    if (this.flags.collapsed) return;
+    drawStatusBadge(ctx, this);
+  }
+}
+ItemNode.title = "Item";
+LiteGraph.registerNodeType("renpy/item", ItemNode);
+
+// ════════════════════════════════════════════════════════
+//  NODE: Character
+// ════════════════════════════════════════════════════════
+class CharacterNode extends LiteGraph.LGraphNode {
+  constructor() {
+    super();
+    this.properties = {
+      id: "",
+      name: "New Character",
+      voice: "",
+      sprite_id: "",
+    };
+    this.color   = "#0d4a30";
+    this.bgcolor = "#062a1a";
+    this.size = [190, 40];
+  }
+
+  getTitle() {
+    return this.properties.name || this.properties.id || "Character";
+  }
+
+  onDrawForeground(ctx) {
+    if (this.flags.collapsed) return;
+    drawStatusBadge(ctx, this);
+  }
+}
+CharacterNode.title = "Character";
+LiteGraph.registerNodeType("renpy/character", CharacterNode);
+
+// ════════════════════════════════════════════════════════
+//  Graph + Canvas init
+// ════════════════════════════════════════════════════════
+const graph = new LiteGraph.LGraph();
+const canvasEl = document.getElementById("graph-canvas");
+const lgCanvas = new LiteGraph.LGraphCanvas(canvasEl, graph);
+
+lgCanvas.render_canvas_border = false;
+lgCanvas.render_connections_shadows = false;
+lgCanvas.background_image = "";
+
+function resizeCanvas() {
+  const wrap = document.getElementById("canvas-wrap");
+  canvasEl.width  = wrap.clientWidth;
+  canvasEl.height = wrap.clientHeight;
+  lgCanvas.setDirty(true, true);
+}
+const ro = new ResizeObserver(resizeCanvas);
+ro.observe(document.getElementById("canvas-wrap"));
+resizeCanvas();
+
+// ════════════════════════════════════════════════════════
+//  Auto-save
+// ════════════════════════════════════════════════════════
+let saveTimer = null;
+let lastSavedJson = null;
+const statusEl = document.getElementById("save-status");
+
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  statusEl.textContent = "●";
+  statusEl.style.color = "#f39c12";
+  saveTimer = setTimeout(saveGraph, 2000);
+}
+
+async function saveGraph() {
+  clearTimeout(saveTimer);
+  const data = graph.serialize();
+  const json = JSON.stringify(data);
+  if (json === lastSavedJson) {
+    statusEl.textContent = "✓ uloženo";
+    statusEl.style.color = "#2ecc71";
+    return;
+  }
+  try {
+    const r = await fetch("/api/graph", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: json,
+    });
+    if (!r.ok) throw new Error(await r.text());
+    lastSavedJson = json;
+    statusEl.textContent = "✓ uloženo";
+    statusEl.style.color = "#2ecc71";
+  } catch (e) {
+    statusEl.textContent = "✗ chyba";
+    statusEl.style.color = "#e74c3c";
+    console.error("Chyba uložení:", e);
+  }
+}
+
+graph.onAfterChange = scheduleSave;
+
+// ════════════════════════════════════════════════════════
+//  Properties panel
+// ════════════════════════════════════════════════════════
+let selectedNode = null;
+
+lgCanvas.onNodeSelected = (node) => {
+  selectedNode = node;
+  renderPanel(node);
+};
+
+// Detect deselection by clicking empty area
+canvasEl.addEventListener("pointerdown", () => {
+  requestAnimationFrame(() => {
+    const sel = lgCanvas.selected_nodes;
+    if (!sel || Object.keys(sel).length === 0) {
+      selectedNode = null;
+      document.getElementById("props-header").textContent = "Vlastnosti";
+      document.getElementById("props-body").innerHTML =
+        '<div class="placeholder">Klikni na uzel<br>pro zobrazení vlastností.<br><br>Pravý klik na canvas<br>pro kontextové menu.</div>';
+    }
+  });
+});
+
+// ── Helpers for building the form ──
+function makeField(id, label, type, value, opts = {}) {
+  if (type === "textarea") {
+    return `<div class="field"><label for="${id}">${label}</label>` +
+      `<textarea id="${id}" rows="3">${escHtml(value || "")}</textarea></div>`;
+  }
+  if (type === "select") {
+    const options = opts.choices.map(c =>
+      `<option value="${escHtml(c.value)}" ${c.value === value ? "selected" : ""}>${escHtml(c.label)}</option>`
+    ).join("");
+    return `<div class="field"><label for="${id}">${label}</label><select id="${id}">${options}</select></div>`;
+  }
+  if (type === "checkbox") {
+    return `<div class="field"><div class="checkbox-row">` +
+      `<input type="checkbox" id="${id}" ${value ? "checked" : ""}>` +
+      `<label for="${id}" style="text-transform:none;color:#bbb;font-size:12px;">${label}</label>` +
+      `</div></div>`;
+  }
+  return `<div class="field"><label for="${id}">${label}</label>` +
+    `<input type="${type}" id="${id}" value="${escHtml(String(value ?? ""))}"></div>`;
+}
+
+function renderPanel(node) {
+  if (!node) return;
+  const typeNames = {
+    "renpy/location":  "Location",
+    "renpy/event":     "Event",
+    "renpy/item":      "Item",
+    "renpy/character": "Character",
+  };
+  document.getElementById("props-header").textContent = typeNames[node.type] || node.type;
+
+  const p = node.properties;
+  let html = makeField("prop-id", "ID (Ren'Py)", "text", p.id);
+
+  if (node.type === "renpy/location") {
+    html += makeField("prop-label", "Název", "text", p.label);
+    html += makeField("prop-desc", "Popis", "textarea", p.description);
+    html += `<hr class="section-div"><div class="section-label">Východy (exits)</div>`;
+    html += `<div id="exits-list">`;
+    (p.exits || []).forEach((exit, i) => {
+      html += `<div class="exit-row">
+        <input type="text" id="exit-${i}" value="${escHtml(exit.name || "")}"
+               placeholder="název" oninput="updateExit(${i},this.value)">
+        <button class="del-btn" onclick="removeExit(${i})">×</button>
+      </div>`;
+    });
+    html += `</div>`;
+    html += `<button class="add-exit-btn" onclick="addExit()">+ Přidat exit</button>`;
+
+  } else if (node.type === "renpy/event") {
+    html += makeField("prop-location", "Lokace (ID)", "text", p.location_id);
+    html += makeField("prop-trigger", "Trigger", "select", p.trigger, { choices: [
+      { value: "auto_enter",   label: "auto_enter — při vstupu" },
+      { value: "menu_choice",  label: "menu_choice — volba v menu" },
+      { value: "condition",    label: "condition — Python podmínka" },
+    ]});
+    html += makeField("prop-trigger-label", "Trigger label / text volby", "text", p.trigger_label);
+    html += makeField("prop-prereq", "Prerekvizita (Python)", "text", p.prerequisite);
+    html += makeField("prop-time", "Čas dne", "select", p.time, { choices: [
+      { value: "any",       label: "any" },
+      { value: "morning",   label: "morning" },
+      { value: "afternoon", label: "afternoon" },
+      { value: "evening",   label: "evening" },
+      { value: "night",     label: "night" },
+    ]});
+    html += makeField("prop-priority", "Priorita", "number", p.priority);
+    html += makeField("prop-repeatable", "Opakuje se", "checkbox", p.repeatable);
+    html += makeField("prop-notes", "Poznámky", "textarea", p.notes);
+
+  } else if (node.type === "renpy/item") {
+    html += makeField("prop-name", "Název", "text", p.name);
+    html += makeField("prop-desc", "Popis", "textarea", p.description);
+
+  } else if (node.type === "renpy/character") {
+    html += makeField("prop-name", "Jméno", "text", p.name);
+    html += makeField("prop-voice", "Hlas / styl (pro AI)", "textarea", p.voice);
+    html += makeField("prop-sprite", "Sprite ID", "text", p.sprite_id);
+  }
+
+  document.getElementById("props-body").innerHTML = html;
+  attachListeners(node);
+}
+
+function attachListeners(node) {
+  function bind(elId, propKey, transform) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    const ev = el.type === "checkbox" ? "change" : "input";
+    el.addEventListener(ev, () => {
+      const val = el.type === "checkbox" ? el.checked
+                : transform ? transform(el.value)
+                : el.value;
+      node.properties[propKey] = val;
+      node.setDirtyCanvas(true, true);
+      scheduleSave();
+    });
+  }
+
+  bind("prop-id", "id");
+
+  if (node.type === "renpy/location") {
+    bind("prop-label", "label");
+    bind("prop-desc",  "description");
+    // exits are handled by updateExit / addExit / removeExit (global functions)
+  } else if (node.type === "renpy/event") {
+    bind("prop-location",      "location_id");
+    bind("prop-trigger",       "trigger");
+    bind("prop-trigger-label", "trigger_label");
+    bind("prop-prereq",        "prerequisite");
+    bind("prop-time",          "time");
+    bind("prop-priority",      "priority", v => parseInt(v) || 0);
+    bind("prop-repeatable",    "repeatable");
+    bind("prop-notes",         "notes");
+  } else if (node.type === "renpy/item") {
+    bind("prop-name", "name");
+    bind("prop-desc", "description");
+  } else if (node.type === "renpy/character") {
+    bind("prop-name",   "name");
+    bind("prop-voice",  "voice");
+    bind("prop-sprite", "sprite_id");
+  }
+}
+
+// ── Exit management (called from inline onclick on Location's form) ──
+function updateExit(i, value) {
+  if (!selectedNode || selectedNode.type !== "renpy/location") return;
+  selectedNode.properties.exits[i].name = value;
+  selectedNode.syncExitSlots();
+  selectedNode.setDirtyCanvas(true, true);
+  scheduleSave();
+}
+
+function removeExit(i) {
+  if (!selectedNode || selectedNode.type !== "renpy/location") return;
+  selectedNode.properties.exits.splice(i, 1);
+  selectedNode.syncExitSlots();
+  selectedNode.setDirtyCanvas(true, true);
+  renderPanel(selectedNode);
+  scheduleSave();
+}
+
+function addExit() {
+  if (!selectedNode || selectedNode.type !== "renpy/location") return;
+  selectedNode.properties.exits.push({ name: "exit_" + (selectedNode.properties.exits.length + 1) });
+  selectedNode.syncExitSlots();
+  selectedNode.setDirtyCanvas(true, true);
+  renderPanel(selectedNode);
+  scheduleSave();
+}
+
+// ════════════════════════════════════════════════════════
+//  Toolbar actions
+// ════════════════════════════════════════════════════════
+let nodeCounter = {};
+
+function addNode(type) {
+  const node = LiteGraph.createNode(type);
+  if (!node) return;
+
+  const shortType = type.split("/")[1];
+  nodeCounter[shortType] = (nodeCounter[shortType] || 0) + 1;
+  const n = nodeCounter[shortType];
+
+  node.properties.id = shortType + "_" + n;
+  if ("label"     in node.properties) node.properties.label     = shortType + " " + n;
+  if ("name"      in node.properties) node.properties.name      = shortType + " " + n;
+
+  // Place near canvas centre — convertOffsetToCanvas converts screen px → graph space
+  const center = lgCanvas.convertOffsetToCanvas([canvasEl.width * 0.5, canvasEl.height * 0.5]);
+  node.pos = [
+    center[0] - node.size[0] * 0.5 + (Math.random() - 0.5) * 120,
+    center[1] - node.size[1] * 0.5 + (Math.random() - 0.5) * 80,
+  ];
+
+  graph.add(node);
+}
+
+async function exportRpy() {
+  try {
+    const r = await fetch("/api/export-rpy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(graph.serialize()),
+    });
+    const data = await r.json();
+    alert(data.message || "Export hotov.");
+  } catch (e) {
+    alert("Chyba exportu: " + e.message);
+  }
+}
+
+async function scanFiles() {
+  try {
+    const r = await fetch("/api/scan");
+    const data = await r.json();
+    // Update status badges on nodes
+    for (const node of graph._nodes) {
+      const s = data.nodes[node.properties.id];
+      if (s !== undefined) { node._status = s; node.setDirtyCanvas(true); }
+    }
+    if (data.drift && data.drift.length) {
+      alert("Drift detekce:\n" + data.drift.join("\n"));
+    } else {
+      statusEl.textContent = "Scan OK";
+      statusEl.style.color = "#2ecc71";
+    }
+  } catch (e) {
+    alert("Chyba scanu: " + e.message);
+  }
+}
+
+async function launchRenpy() {
+  try {
+    const r = await fetch("/api/launch", { method: "POST" });
+    if (!r.ok) {
+      const d = await r.json();
+      alert("Nelze spustit: " + (d.error || r.statusText));
+    }
+  } catch (e) {
+    alert("Chyba při spouštění: " + e.message);
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  Startup: load saved graph
+// ════════════════════════════════════════════════════════
+(async () => {
+  try {
+    const r = await fetch("/api/graph");
+    const data = await r.json();
+    if (data) {
+      graph.configure(data);
+      lastSavedJson = JSON.stringify(graph.serialize());
+      statusEl.textContent = "✓ načteno";
+      statusEl.style.color = "#2ecc71";
+    }
+  } catch (e) {
+    console.error("Chyba načítání grafu:", e);
+  }
+  graph.start();
+})();
+</script>
+</body>
+</html>
