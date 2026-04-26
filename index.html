@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comfy-Renpy</title>
+  <link rel="stylesheet" href="/lib/litegraph/css/litegraph.css">
+</head>
+<body>
+
+<div id="toolbar">
+  <span class="logo">⬡ Comfy-Renpy</span>
+  <div class="sep"></div>
+  <button class="node-btn loc" onclick="addNode('renpy/location')">+ Location</button>
+  <button class="node-btn evt" onclick="addNode('renpy/event')">+ Event</button>
+  <button class="node-btn itm" onclick="addNode('renpy/item')">+ Item</button>
+  <button class="node-btn chr" onclick="addNode('renpy/character')">+ Character</button>
+  <button class="node-btn" style="border-left-color:#886600" onclick="addNode('renpy/note')">+ Note</button>
+  <div class="sep"></div>
+  <button class="primary" onclick="saveGraph()">Uložit</button>
+  <button onclick="validateGraph()">✓ Zkontrolovat</button>
+  <button onclick="exportRpy()">Export .rpy</button>
+  <button onclick="scanFiles()">Scan</button>
+  <button onclick="previewRpy()">Preview</button>
+  <button onclick="autoLayout()">⊞ Auto-layout</button>
+  <button onclick="launchRenpy()">▶ Spustit</button>
+  <div class="sep"></div>
+  <button onclick="openConfig()">⚙ Nastavení</button>
+  <button onclick="openHelp()">? Nápověda</button>
+  <span id="save-status"></span><span id="graph-stats"></span>
+</div>
+
+<!-- Config modal -->
+<div id="cfg-overlay" onclick="cfgOverlayClick(event)">
+  <div id="cfg-modal">
+    <h2>⚙ Nastavení projektu</h2>
+    <div class="field">
+      <label for="cfg-gamedir">Herní adresář (gameDir)</label>
+      <input type="text" id="cfg-gamedir" placeholder="C:/mygame/game">
+      <div class="cfg-hint">
+        Cesta k adresáři <code>game/</code> tvého Ren'Py projektu.<br>
+        Export .rpy bude ukládat soubory sem (do podadresářů <code>locations/</code> a <code>events/</code>).
+      </div>
+    </div>
+    <div class="field">
+      <label for="cfg-renpyexe">Ren'Py spustitelný soubor (renpyExe)</label>
+      <input type="text" id="cfg-renpyexe" placeholder="C:/renpy/renpy.exe">
+      <div class="cfg-hint">Volitelné — potřebné jen pro tlačítko ▶ Spustit.</div>
+    </div>
+    <div id="cfg-status"></div>
+    <div class="cfg-actions">
+      <button onclick="closeConfig()">Zrušit</button>
+      <button class="primary" onclick="saveConfig()">Uložit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Help modal -->
+<div id="help-overlay" onclick="helpOverlayClick(event)">
+  <div id="help-modal">
+    <h2>⬡ Comfy-Renpy</h2>
+
+    <div class="help-tabs">
+      <button class="help-tab active" onclick="helpTab(this,'start')">Rychlý start</button>
+      <button class="help-tab" onclick="helpTab(this,'nodes')">Uzly</button>
+      <button class="help-tab" onclick="helpTab(this,'export')">Export &amp; Scan</button>
+      <button class="help-tab" onclick="helpTab(this,'keys')">Klávesy</button>
+    </div>
+
+    <div class="help-body">
+
+      <!-- TAB: Rychlý start -->
+      <div class="help-page active" id="help-page-start">
+        <ol class="help-steps">
+          <li>
+            <div class="help-step-num">1</div>
+            <div class="help-step-body">
+              <strong>Nastav projekt</strong>
+              <p>Klikni na <strong>⚙ Nastavení</strong> a zadej cestu k adresáři <code>game/</code> tvého Ren'Py projektu. Sem půjdou exportované soubory. Volitelně nastav cestu k <code>renpy.exe</code> pro spouštění přímo z editoru.</p>
+            </div>
+          </li>
+          <li>
+            <div class="help-step-num">2</div>
+            <div class="help-step-body">
+              <strong>Vytvoř lokace a propoj je</strong>
+              <p>Tlačítkem <strong>+ Location</strong> přidej místnosti. V pravém panelu pojmenuj každou lokaci a přidej <em>exity</em> (směry, kudy se dá odejít). Pak přetáhni drát z exit portu jedné lokace na vstup druhé — tak vzniká mapa.</p>
+            </div>
+          </li>
+          <li>
+            <div class="help-step-num">3</div>
+            <div class="help-step-body">
+              <strong>Přidej eventy, itemy a postavy</strong>
+              <p><strong>+ Event</strong> — scéna nebo událost vázaná na lokaci.<br>
+              <strong>+ Item</strong> — předmět ve hře.<br>
+              <strong>+ Character</strong> — postava s hlasem a sprite.</p>
+            </div>
+          </li>
+          <li>
+            <div class="help-step-num">4</div>
+            <div class="help-step-body">
+              <strong>Exportuj a piš dialogy</strong>
+              <p>Tlačítko <strong>Export .rpy</strong> vygeneruje kostry souborů. Dialogy piš v IDE mezi markery <code># [COMFY-END]</code> a <code># [COMFY-START …]</code> — tyto oblasti Comfy-Renpy nikdy nepřepíše.</p>
+            </div>
+          </li>
+          <li>
+            <div class="help-step-num">5</div>
+            <div class="help-step-body">
+              <strong>Sleduj postup přes Scan</strong>
+              <p>Tlačítko <strong>Scan</strong> zkontroluje stav každého uzlu a zobrazí barevný badge na uzlu.</p>
+              <div class="help-legend">
+                <span><span class="dot" style="background:#2ecc71"></span> written</span>
+                <span><span class="dot" style="background:#f39c12"></span> stub</span>
+                <span><span class="dot" style="background:#7f8c8d"></span> missing</span>
+                <span><span class="dot" style="background:#e74c3c"></span> drift</span>
+              </div>
+            </div>
+          </li>
+        </ol>
+      </div>
+
+      <!-- TAB: Uzly -->
+      <div class="help-page" id="help-page-nodes">
+
+        <div class="node-card">
+          <div class="node-card-header" style="background:#1a2d3d">
+            <span class="nc-dot" style="background:#2d82b7"></span> Location
+          </div>
+          <div class="node-card-body">
+            <p>Reprezentuje místnost nebo oblast ve hře. Uzly Location se propojují hranami, které tvoří mapu hry.</p>
+            <div class="prop-row"><span class="prop-name">id</span><span class="prop-desc">Unikátní identifikátor lokace, používá se v <code>jump location_{id}</code>. Jen písmena, čísla, podtržítko.</span></div>
+            <div class="prop-row"><span class="prop-name">label</span><span class="prop-desc">Zobrazovaný název místnosti (zobrazí se hráči v menu).</span></div>
+            <div class="prop-row"><span class="prop-name">description</span><span class="prop-desc">Volný popis pro tvůrce — exportuje se jako komentář do .rpy.</span></div>
+            <div class="prop-row"><span class="prop-name">exits</span><span class="prop-desc">Seznam výstupů ve formátu <em>název:cíl_id</em>, např. <code>north:hall</code>. Každý exit vytvoří výstupní port uzlu.</span></div>
+          </div>
+        </div>
+
+        <div class="node-card">
+          <div class="node-card-header" style="background:#2d1f00">
+            <span class="nc-dot" style="background:#e67e22"></span> Event
+          </div>
+          <div class="node-card-body">
+            <p>Scéna nebo událost vázaná na konkrétní lokaci. Generuje se do <code>events/{id}.rpy</code>.</p>
+            <div class="prop-row"><span class="prop-name">id</span><span class="prop-desc">Unikátní identifikátor eventu.</span></div>
+            <div class="prop-row"><span class="prop-name">location_id</span><span class="prop-desc">ID lokace, kde se event odehrává. Musí odpovídat existující Location.</span></div>
+            <div class="prop-row"><span class="prop-name">trigger</span><span class="prop-desc">Podmínka spuštění: <em>auto_enter</em>, <em>menu_choice</em>, <em>condition</em>.</span></div>
+            <div class="prop-row"><span class="prop-name">trigger_label</span><span class="prop-desc">Text volby v menu, pokud je trigger <em>menu_choice</em>.</span></div>
+            <div class="prop-row"><span class="prop-name">prerequisite</span><span class="prop-desc">Ren'Py podmínka (Python výraz), která musí být splněna pro zobrazení eventu.</span></div>
+            <div class="prop-row"><span class="prop-name">time</span><span class="prop-desc">Herní čas: <em>any</em>, <em>day</em>, <em>night</em>, apod.</span></div>
+            <div class="prop-row"><span class="prop-name">repeatable</span><span class="prop-desc">Zda se event může spustit opakovaně (true/false).</span></div>
+            <div class="prop-row"><span class="prop-name">priority</span><span class="prop-desc">Číslo priority při více splněných eventech najednou (vyšší = dřív).</span></div>
+            <div class="prop-row"><span class="prop-name">notes</span><span class="prop-desc">Volné poznámky pro tvůrce — exportuje se jako komentář.</span></div>
+          </div>
+        </div>
+
+        <div class="node-card">
+          <div class="node-card-header" style="background:#1e1030">
+            <span class="nc-dot" style="background:#8e44ad"></span> Item
+          </div>
+          <div class="node-card-body">
+            <p>Předmět ve hře. Slouží jako dokumentace — generuje se komentář/záznam do exportu.</p>
+            <div class="prop-row"><span class="prop-name">id</span><span class="prop-desc">Unikátní identifikátor itemu.</span></div>
+            <div class="prop-row"><span class="prop-name">name</span><span class="prop-desc">Zobrazovaný název předmětu.</span></div>
+            <div class="prop-row"><span class="prop-name">description</span><span class="prop-desc">Popis předmětu pro tvůrce i hráče.</span></div>
+          </div>
+        </div>
+
+        <div class="node-card">
+          <div class="node-card-header" style="background:#0d2020">
+            <span class="nc-dot" style="background:#16a085"></span> Character
+          </div>
+          <div class="node-card-body">
+            <p>Postava ve hře. Data jsou podkladem pro definici <code>Character()</code> v Ren'Py.</p>
+            <div class="prop-row"><span class="prop-name">id</span><span class="prop-desc">Unikátní identifikátor postavy — použije se jako název proměnné v Ren'Py.</span></div>
+            <div class="prop-row"><span class="prop-name">name</span><span class="prop-desc">Jméno postavy zobrazované v dialogovém boxu.</span></div>
+            <div class="prop-row"><span class="prop-name">voice</span><span class="prop-desc">Hlasový tag pro voice acting (<code>voice_tag=</code>).</span></div>
+            <div class="prop-row"><span class="prop-name">sprite_id</span><span class="prop-desc">ID spritu postavy pro <code>show {sprite_id}</code>.</span></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- TAB: Export & Scan -->
+      <div class="help-page" id="help-page-export">
+        <h3>Export .rpy</h3>
+        <p>Tlačítko <strong>Export .rpy</strong> projde všechny uzly a pro každou Location/Event vygeneruje (nebo aktualizuje) <code>.rpy</code> soubor.</p>
+        <p>Soubory se ukládají do:</p>
+        <ul style="font-size:12px;color:#777;line-height:1.8;padding-left:18px;margin-bottom:10px">
+          <li><code>{gameDir}/locations/{id}.rpy</code> — pro Location uzly</li>
+          <li><code>{gameDir}/events/{id}.rpy</code> — pro Event uzly</li>
+        </ul>
+        <p>Pokud <code>gameDir</code> není nastaven, exportuje do <code>output/</code> vedle serveru.</p>
+
+        <h3>Marker systém</h3>
+        <p>Každý generovaný soubor obsahuje bloky ohraničené markery:</p>
+        <pre style="background:#1e1e1e;border:1px solid #333;border-radius:4px;padding:10px;font-size:11px;color:#aaa;line-height:1.6;overflow-x:auto"># [COMFY-START id=kitchen kind=header]
+label location_kitchen:
+# [COMFY-END]
+
+    pass  &lt;-- sem piš obsah lokace
+
+# [COMFY-START id=kitchen kind=exits]
+    menu:
+        "north":
+            jump location_hall
+# [COMFY-END]</pre>
+        <p>Obsah <strong>mimo markery</strong> Comfy-Renpy nikdy nepřepíše — dialogy a logiku piš tam.</p>
+
+        <h3>Scan — stavy uzlů</h3>
+        <div class="prop-row"><span class="prop-name"><span class="dot" style="background:#2ecc71;margin-right:4px"></span>written</span><span class="prop-desc">Soubor existuje a má dialogové řádky (uvozovky, <code>jump</code>, <code>show</code>, <code>menu</code>…).</span></div>
+        <div class="prop-row"><span class="prop-name"><span class="dot" style="background:#f39c12;margin-right:4px"></span>stub</span><span class="prop-desc">Soubor existuje, marker je přítomen, ale žádný dialog zatím není napsán.</span></div>
+        <div class="prop-row"><span class="prop-name"><span class="dot" style="background:#7f8c8d;margin-right:4px"></span>missing</span><span class="prop-desc">Soubor pro tento uzel neexistuje — spusť Export.</span></div>
+        <div class="prop-row"><span class="prop-name"><span class="dot" style="background:#e74c3c;margin-right:4px"></span>drift</span><span class="prop-desc">Soubor existuje bez COMFY markeru, nebo soubor existuje pro uzel, který v grafu chybí (orphan).</span></div>
+      </div>
+
+      <!-- TAB: Klávesy -->
+      <div class="help-page" id="help-page-keys">
+        <h3>Ovládání plátna</h3>
+        <div class="shortcut-row"><kbd>Pravé tlačítko</kbd><span>Kontextové menu — přidat uzel nebo skupinu</span></div>
+        <div class="shortcut-row"><kbd>Kolečko myši</kbd><span>Přiblížení / oddálení</span></div>
+        <div class="shortcut-row"><kbd>Middle drag</kbd><span>Posun pohledu (pan)</span></div>
+        <div class="shortcut-row"><kbd>Ctrl + drag</kbd><span>Výběr více uzlů naráz</span></div>
+        <div class="shortcut-row"><kbd>Delete / Backspace</kbd><span>Smazat vybraný uzel nebo hranu</span></div>
+        <div class="shortcut-row"><kbd>Ctrl + Z</kbd><span>Zpět (undo)</span></div>
+        <div class="shortcut-row"><kbd>Ctrl + C / V</kbd><span>Kopírovat / vložit vybrané uzly</span></div>
+        <div class="shortcut-row"><kbd>Escape</kbd><span>Zavřít modál / zrušit výběr</span></div>
+
+        <h3>Toolbar</h3>
+        <div class="shortcut-row"><kbd>+ Location</kbd><span>Přidat nový Location uzel</span></div>
+        <div class="shortcut-row"><kbd>+ Event</kbd><span>Přidat nový Event uzel</span></div>
+        <div class="shortcut-row"><kbd>+ Item</kbd><span>Přidat nový Item uzel</span></div>
+        <div class="shortcut-row"><kbd>+ Character</kbd><span>Přidat nový Character uzel</span></div>
+        <div class="shortcut-row"><kbd>Export .rpy</kbd><span>Vygenerovat / aktualizovat .rpy soubory</span></div>
+        <div class="shortcut-row"><kbd>Scan</kbd><span>Zkontrolovat stav .rpy souborů</span></div>
+        <div class="shortcut-row"><kbd>▶ Spustit</kbd><span>Spustit Ren'Py hru (vyžaduje nastavené renpy.exe)</span></div>
+
+        <h3>Properties panel</h3>
+        <div class="shortcut-row"><kbd>Klik na uzel</kbd><span>Otevřít properties panel vpravo</span></div>
+        <div class="shortcut-row"><kbd>Klik mimo uzel</kbd><span>Zavřít properties panel</span></div>
+        <div class="shortcut-row"><kbd>Enter (v poli)</kbd><span>Potvrdit změnu hodnoty</span></div>
+      </div>
+
+    </div><!-- /.help-body -->
+
+    <div class="help-actions">
+      <button class="primary" onclick="closeHelp()">Zavřít</button>
+    </div>
+  </div>
+</div>
+
+<!-- Validation modal -->
+<div id="val-overlay" onclick="valOverlayClick(event)">
+  <div id="val-modal">
+    <h2>✓ Kontrola grafu</h2>
+    <div class="val-body" id="val-body"></div>
+    <div class="val-actions">
+      <button onclick="closeVal()">Zavřít</button>
+      <button id="val-export-btn" class="primary" onclick="closeVal(); doExport()">Export i přesto</button>
+    </div>
+  </div>
+</div>
+
+<!-- Preview modal -->
+<div id="preview-overlay" onclick="previewOverlayClick(event)">
+  <div id="preview-modal">
+    <h2>Preview .rpy</h2>
+    <div id="preview-filename"></div>
+    <pre id="preview-content"></pre>
+    <div class="preview-actions">
+      <button onclick="closePreview()">Zavřít</button>
+    </div>
+  </div>
+</div>
+
+<div id="workspace">
+  <div id="canvas-wrap">
+    <canvas id="graph-canvas"></canvas>
+  </div>
+  <div id="props-panel">
+    <div id="props-header">Vlastnosti</div>
+    <div id="props-body">
+      <div class="placeholder">
+        Klikni na uzel<br>pro zobrazení vlastností.<br><br>
+        Pravý klik na canvas<br>pro kontextové menu.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/lib/litegraph/build/litegraph.js"></script>
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>

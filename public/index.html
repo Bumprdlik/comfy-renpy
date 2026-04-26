@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Comfy-Renpy</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litegraph.js@0.7.18/css/litegraph.css">
+  <link rel="stylesheet" href="/lib/litegraph/css/litegraph.css">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -259,29 +259,60 @@
       background: #252525;
       border: 1px solid #444;
       border-radius: 6px;
-      width: 560px;
-      max-width: 95vw;
-      max-height: 90vh;
-      overflow-y: auto;
-      padding: 24px 28px 20px;
+      width: 620px;
+      max-width: 96vw;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
       box-shadow: 0 8px 40px rgba(0,0,0,.6);
     }
     #help-modal h2 {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
       color: #ddd;
-      margin-bottom: 4px;
+      padding: 20px 24px 0;
+      margin-bottom: 0;
     }
-    #help-modal .subtitle {
+
+    /* tabs */
+    .help-tabs {
+      display: flex;
+      gap: 0;
+      padding: 12px 24px 0;
+      border-bottom: 1px solid #333;
+      flex-shrink: 0;
+    }
+    .help-tab {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: #666;
       font-size: 12px;
-      color: #555;
-      margin-bottom: 20px;
+      padding: 6px 12px 8px;
+      cursor: pointer;
+      margin-bottom: -1px;
+      transition: color .15s;
     }
+    .help-tab:hover { color: #aaa; background: none; }
+    .help-tab.active { color: #aee; border-bottom-color: #2d82b7; }
+
+    /* tab content */
+    .help-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px 24px 16px;
+      scrollbar-width: thin;
+      scrollbar-color: #3a3a3a #1a1a1a;
+    }
+    .help-page { display: none; }
+    .help-page.active { display: block; }
+
+    /* steps */
     .help-steps { list-style: none; }
     .help-steps li {
       display: flex;
       gap: 14px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       align-items: flex-start;
     }
     .help-step-num {
@@ -289,8 +320,7 @@
       color: #aee;
       font-size: 11px;
       font-weight: 700;
-      width: 22px;
-      height: 22px;
+      width: 22px; height: 22px;
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -298,50 +328,132 @@
       flex-shrink: 0;
       margin-top: 1px;
     }
-    .help-step-body strong {
-      display: block;
-      font-size: 13px;
-      color: #ccc;
-      margin-bottom: 3px;
+
+    /* node reference cards */
+    .node-card {
+      border: 1px solid #333;
+      border-radius: 5px;
+      margin-bottom: 14px;
+      overflow: hidden;
     }
-    .help-step-body p {
+    .node-card-header {
+      padding: 7px 12px;
       font-size: 12px;
-      color: #777;
-      line-height: 1.55;
+      font-weight: 600;
+      color: #ddd;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
-    .help-step-body code {
-      background: #333;
+    .node-card-header .nc-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .node-card-body { padding: 10px 12px; }
+    .prop-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 7px;
+      font-size: 12px;
+      align-items: baseline;
+    }
+    .prop-name {
+      color: #7ab;
+      font-family: monospace;
+      font-size: 11px;
+      min-width: 130px;
+      flex-shrink: 0;
+    }
+    .prop-desc { color: #888; line-height: 1.4; }
+    .prop-desc em { color: #aaa; font-style: normal; }
+
+    /* misc */
+    .help-body code {
+      background: #2e2e2e;
       border-radius: 3px;
       padding: 1px 5px;
       font-size: 11px;
       color: #aaa;
       font-family: monospace;
     }
+    .help-body p { font-size: 12px; color: #777; line-height: 1.6; margin-bottom: 10px; }
+    .help-body strong { color: #bbb; }
+    .help-body h3 { font-size: 12px; color: #888; text-transform: uppercase;
+                    letter-spacing: .6px; margin: 14px 0 8px; }
     .help-legend {
-      display: flex;
-      gap: 14px;
-      flex-wrap: wrap;
-      margin: 4px 0 0;
+      display: flex; gap: 14px; flex-wrap: wrap; margin: 6px 0 10px;
     }
     .help-legend span {
-      font-size: 11px;
-      color: #666;
-      display: flex;
-      align-items: center;
-      gap: 5px;
+      font-size: 11px; color: #666;
+      display: flex; align-items: center; gap: 5px;
     }
-    .dot {
-      width: 9px; height: 9px;
-      border-radius: 50%;
-      display: inline-block;
-      flex-shrink: 0;
+    .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+    .shortcut-row {
+      display: flex; gap: 12px; margin-bottom: 7px; align-items: center;
     }
-    #help-modal hr { border: none; border-top: 1px solid #333; margin: 18px 0; }
+    .shortcut-row kbd {
+      background: #333; border: 1px solid #555; border-radius: 3px;
+      padding: 2px 7px; font-size: 11px; color: #bbb; font-family: monospace;
+      min-width: 90px; text-align: center; flex-shrink: 0;
+    }
+    .shortcut-row span { font-size: 12px; color: #777; }
     #help-modal .help-actions {
       display: flex;
       justify-content: flex-end;
-      margin-top: 4px;
+      padding: 10px 24px 16px;
+      border-top: 1px solid #2a2a2a;
+      flex-shrink: 0;
     }
+
+    /* ── Validation modal ── */
+    #val-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.65); z-index: 110;
+      align-items: center; justify-content: center;
+    }
+    #val-overlay.open { display: flex; }
+    #val-modal {
+      background: #252525; border: 1px solid #444; border-radius: 6px;
+      width: 540px; max-width: 95vw; max-height: 80vh;
+      display: flex; flex-direction: column;
+      box-shadow: 0 8px 40px rgba(0,0,0,.6);
+    }
+    #val-modal h2 { font-size: 14px; font-weight: 600; color: #ddd; padding: 16px 20px 0; }
+    .val-body { flex: 1; overflow-y: auto; padding: 10px 20px 8px; scrollbar-width: thin; scrollbar-color: #3a3a3a #1a1a1a; }
+    .val-item { display: flex; gap: 8px; margin-bottom: 7px; font-size: 12px; align-items: flex-start; }
+    .val-icon { flex-shrink: 0; width: 16px; }
+    .val-text { color: #bbb; line-height: 1.45; }
+    .val-section { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: .7px; margin: 12px 0 6px; }
+    .val-ok { font-size: 12px; color: #2ecc71; padding: 8px 0; }
+    .val-actions { display: flex; gap: 8px; justify-content: flex-end; padding: 10px 20px 14px; border-top: 1px solid #2a2a2a; flex-shrink: 0; }
+
+    /* ── Preview modal ── */
+    #preview-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.65); z-index: 110;
+      align-items: center; justify-content: center;
+    }
+    #preview-overlay.open { display: flex; }
+    #preview-modal {
+      background: #252525; border: 1px solid #444; border-radius: 6px;
+      width: 660px; max-width: 95vw; max-height: 85vh;
+      display: flex; flex-direction: column;
+      box-shadow: 0 8px 40px rgba(0,0,0,.6);
+    }
+    #preview-modal h2 { font-size: 14px; font-weight: 600; color: #ddd; padding: 16px 20px 6px; }
+    #preview-filename { font-size: 11px; color: #555; padding: 0 20px 10px; font-family: monospace; }
+    #preview-content {
+      flex: 1; overflow: auto; margin: 0 14px;
+      background: #1a1a1a; border: 1px solid #333; border-radius: 4px;
+      padding: 12px 14px; font-size: 12px; font-family: monospace;
+      color: #aaa; white-space: pre; line-height: 1.65;
+      scrollbar-width: thin; scrollbar-color: #3a3a3a #1a1a1a;
+    }
+    .preview-actions { display: flex; justify-content: flex-end; padding: 10px 20px 14px; border-top: 1px solid #2a2a2a; flex-shrink: 0; }
+
+    /* ── Stats ── */
+    #graph-stats { font-size: 11px; color: #4a4a4a; margin-left: 6px; }
   </style>
 </head>
 <body>
@@ -353,15 +465,19 @@
   <button class="node-btn evt" onclick="addNode('renpy/event')">+ Event</button>
   <button class="node-btn itm" onclick="addNode('renpy/item')">+ Item</button>
   <button class="node-btn chr" onclick="addNode('renpy/character')">+ Character</button>
+  <button class="node-btn" style="border-left-color:#886600" onclick="addNode('renpy/note')">+ Note</button>
   <div class="sep"></div>
   <button class="primary" onclick="saveGraph()">Uložit</button>
+  <button onclick="validateGraph()">✓ Zkontrolovat</button>
   <button onclick="exportRpy()">Export .rpy</button>
   <button onclick="scanFiles()">Scan</button>
+  <button onclick="previewRpy()">Preview</button>
+  <button onclick="autoLayout()">⊞ Auto-layout</button>
   <button onclick="launchRenpy()">▶ Spustit</button>
   <div class="sep"></div>
   <button onclick="openConfig()">⚙ Nastavení</button>
   <button onclick="openHelp()">? Nápověda</button>
-  <span id="save-status"></span>
+  <span id="save-status"></span><span id="graph-stats"></span>
 </div>
 
 <!-- Config modal -->
@@ -392,67 +508,215 @@
 <!-- Help modal -->
 <div id="help-overlay" onclick="helpOverlayClick(event)">
   <div id="help-modal">
-    <h2>⬡ Comfy-Renpy — rychlý start</h2>
-    <p class="subtitle">Vizuální editor struktury Ren'Py her</p>
+    <h2>⬡ Comfy-Renpy</h2>
 
-    <ol class="help-steps">
-      <li>
-        <div class="help-step-num">1</div>
-        <div class="help-step-body">
-          <strong>Nastav projekt</strong>
-          <p>Klikni na <strong>⚙ Nastavení</strong> a zadej cestu k adresáři <code>game/</code> tvého Ren'Py projektu. Sem půjdou exportované soubory.</p>
-        </div>
-      </li>
-      <li>
-        <div class="help-step-num">2</div>
-        <div class="help-step-body">
-          <strong>Vytvoř lokace a propoj je</strong>
-          <p>Tlačítkem <strong>+ Location</strong> přidej místnosti. V pravém panelu pojmenuj každou lokaci a přidej <em>exity</em> (směry, kudy se dá odejít). Pak přetáhni drát z exit portu jedné lokace na vstup druhé — tak vzniká mapa.</p>
-        </div>
-      </li>
-      <li>
-        <div class="help-step-num">3</div>
-        <div class="help-step-body">
-          <strong>Přidej eventy, itemy a postavy</strong>
-          <p>
-            <strong>+ Event</strong> — scéna/událost. Nastav lokaci (ID), trigger a prerekvizitu.<br>
-            <strong>+ Item</strong> — předmět ve hře.<br>
-            <strong>+ Character</strong> — postava s hlasem a sprite ID.
-          </p>
-        </div>
-      </li>
-      <li>
-        <div class="help-step-num">4</div>
-        <div class="help-step-body">
-          <strong>Exportuj do .rpy</strong>
-          <p>Tlačítko <strong>Export .rpy</strong> vygeneruje kostry souborů do <code>locations/</code> a <code>events/</code>. Soubory mají strukturu s markery — opakovaný export zachová vše, co jsi dopsal.</p>
-        </div>
-      </li>
-      <li>
-        <div class="help-step-num">5</div>
-        <div class="help-step-body">
-          <strong>Dopište dialogy v IDE</strong>
-          <p>Otevři vygenerované <code>.rpy</code> soubory ve svém editoru (VS Code, PyCharm…). Piš dialogy mezi markery <code># [COMFY-END]</code> a <code># [COMFY-START …]</code> — tyto oblasti Comfy-Renpy nikdy nepřepíše.</p>
-        </div>
-      </li>
-      <li>
-        <div class="help-step-num">6</div>
-        <div class="help-step-body">
-          <strong>Sleduj postup přes Scan</strong>
-          <p>Tlačítko <strong>Scan</strong> zkontroluje stav každého uzlu a zobrazí barevný badge:</p>
-          <div class="help-legend">
-            <span><span class="dot" style="background:#2ecc71"></span> written — má dialog</span>
-            <span><span class="dot" style="background:#f39c12"></span> stub — jen kostra</span>
-            <span><span class="dot" style="background:#7f8c8d"></span> missing — soubor chybí</span>
-            <span><span class="dot" style="background:#e74c3c"></span> drift — nesoulad</span>
+    <div class="help-tabs">
+      <button class="help-tab active" onclick="helpTab(this,'start')">Rychlý start</button>
+      <button class="help-tab" onclick="helpTab(this,'nodes')">Uzly</button>
+      <button class="help-tab" onclick="helpTab(this,'export')">Export &amp; Scan</button>
+      <button class="help-tab" onclick="helpTab(this,'keys')">Klávesy</button>
+    </div>
+
+    <div class="help-body">
+
+      <!-- ── TAB: Rychlý start ── -->
+      <div class="help-page active" id="help-page-start">
+        <ol class="help-steps">
+          <li>
+            <div class="help-step-num">1</div>
+            <div class="help-step-body">
+              <strong>Nastav projekt</strong>
+              <p>Klikni na <strong>⚙ Nastavení</strong> a zadej cestu k adresáři <code>game/</code> tvého Ren'Py projektu. Sem půjdou exportované soubory. Volitelně nastav cestu k <code>renpy.exe</code> pro spouštění přímo z editoru.</p>
+            </div>
+          </li>
+          <li>
+            <div class="help-step-num">2</div>
+            <div class="help-step-body">
+              <strong>Vytvoř lokace a propoj je</strong>
+              <p>Tlačítkem <strong>+ Location</strong> přidej místnosti. V pravém panelu pojmenuj každou lokaci a přidej <em>exity</em> (směry, kudy se dá odejít). Pak přetáhni drát z exit portu jedné lokace na vstup druhé — tak vzniká mapa.</p>
+            </div>
+          </li>
+          <li>
+            <div class="help-step-num">3</div>
+            <div class="help-step-body">
+              <strong>Přidej eventy, itemy a postavy</strong>
+              <p><strong>+ Event</strong> — scéna nebo událost vázaná na lokaci.<br>
+              <strong>+ Item</strong> — předmět ve hře.<br>
+              <strong>+ Character</strong> — postava s hlasem a sprite.</p>
+            </div>
+          </li>
+          <li>
+            <div class="help-step-num">4</div>
+            <div class="help-step-body">
+              <strong>Exportuj a piš dialogy</strong>
+              <p>Tlačítko <strong>Export .rpy</strong> vygeneruje kostry souborů. Dialogy piš v IDE mezi markery <code># [COMFY-END]</code> a <code># [COMFY-START …]</code> — tyto oblasti Comfy-Renpy nikdy nepřepíše.</p>
+            </div>
+          </li>
+          <li>
+            <div class="help-step-num">5</div>
+            <div class="help-step-body">
+              <strong>Sleduj postup přes Scan</strong>
+              <p>Tlačítko <strong>Scan</strong> zkontroluje stav každého uzlu a zobrazí barevný badge na uzlu.</p>
+              <div class="help-legend">
+                <span><span class="dot" style="background:#2ecc71"></span> written</span>
+                <span><span class="dot" style="background:#f39c12"></span> stub</span>
+                <span><span class="dot" style="background:#7f8c8d"></span> missing</span>
+                <span><span class="dot" style="background:#e74c3c"></span> drift</span>
+              </div>
+            </div>
+          </li>
+        </ol>
+      </div>
+
+      <!-- ── TAB: Uzly ── -->
+      <div class="help-page" id="help-page-nodes">
+
+        <div class="node-card">
+          <div class="node-card-header" style="background:#1a2d3d">
+            <span class="nc-dot" style="background:#2d82b7"></span> Location
+          </div>
+          <div class="node-card-body">
+            <p>Reprezentuje místnost nebo oblast ve hře. Uzly Location se propojují hranami, které tvoří mapu hry.</p>
+            <div class="prop-row"><span class="prop-name">id</span><span class="prop-desc">Unikátní identifikátor lokace, používá se v <code>jump location_{id}</code>. Jen písmena, čísla, podtržítko.</span></div>
+            <div class="prop-row"><span class="prop-name">label</span><span class="prop-desc">Zobrazovaný název místnosti (zobrazí se hráči v menu).</span></div>
+            <div class="prop-row"><span class="prop-name">description</span><span class="prop-desc">Volný popis pro tvůrce — exportuje se jako komentář do .rpy.</span></div>
+            <div class="prop-row"><span class="prop-name">exits</span><span class="prop-desc">Seznam výstupů ve formátu <em>název:cíl_id</em>, např. <code>north:hall</code>. Každý exit vytvoří výstupní port uzlu.</span></div>
           </div>
         </div>
-      </li>
-    </ol>
 
-    <hr>
+        <div class="node-card">
+          <div class="node-card-header" style="background:#2d1f00">
+            <span class="nc-dot" style="background:#e67e22"></span> Event
+          </div>
+          <div class="node-card-body">
+            <p>Scéna nebo událost vázaná na konkrétní lokaci. Generuje se do <code>events/{id}.rpy</code>.</p>
+            <div class="prop-row"><span class="prop-name">id</span><span class="prop-desc">Unikátní identifikátor eventu.</span></div>
+            <div class="prop-row"><span class="prop-name">location_id</span><span class="prop-desc">ID lokace, kde se event odehrává. Musí odpovídat existující Location.</span></div>
+            <div class="prop-row"><span class="prop-name">trigger</span><span class="prop-desc">Podmínka spuštění: <em>auto</em>, <em>on_enter</em>, <em>interact</em>, <em>manual</em>.</span></div>
+            <div class="prop-row"><span class="prop-name">trigger_label</span><span class="prop-desc">Text volby v menu, pokud je trigger <em>interact</em>.</span></div>
+            <div class="prop-row"><span class="prop-name">prerequisite</span><span class="prop-desc">Ren'Py podmínka (Python výraz), která musí být splněna pro zobrazení eventu.</span></div>
+            <div class="prop-row"><span class="prop-name">time</span><span class="prop-desc">Herní čas: <em>any</em>, <em>day</em>, <em>night</em>, apod.</span></div>
+            <div class="prop-row"><span class="prop-name">repeatable</span><span class="prop-desc">Zda se event může spustit opakovaně (true/false).</span></div>
+            <div class="prop-row"><span class="prop-name">priority</span><span class="prop-desc">Číslo priority při více splněných eventech najednou (vyšší = dřív).</span></div>
+            <div class="prop-row"><span class="prop-name">notes</span><span class="prop-desc">Volné poznámky pro tvůrce — exportuje se jako komentář.</span></div>
+          </div>
+        </div>
+
+        <div class="node-card">
+          <div class="node-card-header" style="background:#1e1030">
+            <span class="nc-dot" style="background:#8e44ad"></span> Item
+          </div>
+          <div class="node-card-body">
+            <p>Předmět ve hře. Slouží jako dokumentace — generuje se komentář/záznam do exportu.</p>
+            <div class="prop-row"><span class="prop-name">id</span><span class="prop-desc">Unikátní identifikátor itemu.</span></div>
+            <div class="prop-row"><span class="prop-name">name</span><span class="prop-desc">Zobrazovaný název předmětu.</span></div>
+            <div class="prop-row"><span class="prop-name">description</span><span class="prop-desc">Popis předmětu pro tvůrce i hráče.</span></div>
+          </div>
+        </div>
+
+        <div class="node-card">
+          <div class="node-card-header" style="background:#0d2020">
+            <span class="nc-dot" style="background:#16a085"></span> Character
+          </div>
+          <div class="node-card-body">
+            <p>Postava ve hře. Data jsou podkladem pro definici <code>Character()</code> v Ren'Py.</p>
+            <div class="prop-row"><span class="prop-name">id</span><span class="prop-desc">Unikátní identifikátor postavy — použije se jako název proměnné v Ren'Py.</span></div>
+            <div class="prop-row"><span class="prop-name">name</span><span class="prop-desc">Jméno postavy zobrazované v dialogovém boxu.</span></div>
+            <div class="prop-row"><span class="prop-name">voice</span><span class="prop-desc">Hlasový tag pro voice acting (<code>voice_tag=</code>).</span></div>
+            <div class="prop-row"><span class="prop-name">sprite_id</span><span class="prop-desc">ID spritu postavy pro <code>show {sprite_id}</code>.</span></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── TAB: Export & Scan ── -->
+      <div class="help-page" id="help-page-export">
+        <h3>Export .rpy</h3>
+        <p>Tlačítko <strong>Export .rpy</strong> projde všechny uzly a pro každou Location/Event vygeneruje (nebo aktualizuje) <code>.rpy</code> soubor.</p>
+        <p>Soubory se ukládají do:</p>
+        <ul style="font-size:12px;color:#777;line-height:1.8;padding-left:18px;margin-bottom:10px">
+          <li><code>{gameDir}/locations/{id}.rpy</code> — pro Location uzly</li>
+          <li><code>{gameDir}/events/{id}.rpy</code> — pro Event uzly</li>
+        </ul>
+        <p>Pokud <code>gameDir</code> není nastaven, exportuje do <code>output/</code> vedle serveru.</p>
+
+        <h3>Marker systém</h3>
+        <p>Každý generovaný soubor obsahuje bloky ohraničené markery:</p>
+        <pre style="background:#1e1e1e;border:1px solid #333;border-radius:4px;padding:10px;font-size:11px;color:#aaa;line-height:1.6;overflow-x:auto"># [COMFY-START id=kitchen kind=header]
+label location_kitchen:
+# [COMFY-END]
+
+    pass  &lt;-- sem piš obsah lokace
+
+# [COMFY-START id=kitchen kind=exits]
+    menu:
+        "north":
+            jump location_hall
+# [COMFY-END]</pre>
+        <p>Obsah <strong>mimo markery</strong> Comfy-Renpy nikdy nepřepíše — dialogy a logiku piš tam.</p>
+
+        <h3>Scan — stavy uzlů</h3>
+        <div class="prop-row"><span class="prop-name"><span class="dot" style="background:#2ecc71;margin-right:4px"></span>written</span><span class="prop-desc">Soubor existuje a má dialogové řádky (uvozovky, <code>jump</code>, <code>show</code>, <code>menu</code>…).</span></div>
+        <div class="prop-row"><span class="prop-name"><span class="dot" style="background:#f39c12;margin-right:4px"></span>stub</span><span class="prop-desc">Soubor existuje, marker je přítomen, ale žádný dialog zatím není napsán.</span></div>
+        <div class="prop-row"><span class="prop-name"><span class="dot" style="background:#7f8c8d;margin-right:4px"></span>missing</span><span class="prop-desc">Soubor pro tento uzel neexistuje — spusť Export.</span></div>
+        <div class="prop-row"><span class="prop-name"><span class="dot" style="background:#e74c3c;margin-right:4px"></span>drift</span><span class="prop-desc">Soubor existuje bez COMFY markeru, nebo soubor existuje pro uzel, který v grafu chybí (orphan).</span></div>
+      </div>
+
+      <!-- ── TAB: Klávesy ── -->
+      <div class="help-page" id="help-page-keys">
+        <h3>Ovládání plátna</h3>
+        <div class="shortcut-row"><kbd>Pravé tlačítko</kbd><span>Kontextové menu — přidat uzel nebo skupinu</span></div>
+        <div class="shortcut-row"><kbd>Kolečko myši</kbd><span>Přiblížení / oddálení</span></div>
+        <div class="shortcut-row"><kbd>Middle drag</kbd><span>Posun pohledu (pan)</span></div>
+        <div class="shortcut-row"><kbd>Ctrl + drag</kbd><span>Výběr více uzlů naráz</span></div>
+        <div class="shortcut-row"><kbd>Delete / Backspace</kbd><span>Smazat vybraný uzel nebo hranu</span></div>
+        <div class="shortcut-row"><kbd>Ctrl + Z</kbd><span>Zpět (undo)</span></div>
+        <div class="shortcut-row"><kbd>Ctrl + C / V</kbd><span>Kopírovat / vložit vybrané uzly</span></div>
+        <div class="shortcut-row"><kbd>Escape</kbd><span>Zavřít modál / zrušit výběr</span></div>
+
+        <h3>Toolbar</h3>
+        <div class="shortcut-row"><kbd>+ Location</kbd><span>Přidat nový Location uzel</span></div>
+        <div class="shortcut-row"><kbd>+ Event</kbd><span>Přidat nový Event uzel</span></div>
+        <div class="shortcut-row"><kbd>+ Item</kbd><span>Přidat nový Item uzel</span></div>
+        <div class="shortcut-row"><kbd>+ Character</kbd><span>Přidat nový Character uzel</span></div>
+        <div class="shortcut-row"><kbd>Export .rpy</kbd><span>Vygenerovat / aktualizovat .rpy soubory</span></div>
+        <div class="shortcut-row"><kbd>Scan</kbd><span>Zkontrolovat stav .rpy souborů</span></div>
+        <div class="shortcut-row"><kbd>▶ Spustit</kbd><span>Spustit Ren'Py hru (vyžaduje nastavené renpy.exe)</span></div>
+
+        <h3>Properties panel</h3>
+        <div class="shortcut-row"><kbd>Klik na uzel</kbd><span>Otevřít properties panel vpravo</span></div>
+        <div class="shortcut-row"><kbd>Klik mimo uzel</kbd><span>Zavřít properties panel</span></div>
+        <div class="shortcut-row"><kbd>Enter (v poli)</kbd><span>Potvrdit změnu hodnoty</span></div>
+      </div>
+
+    </div><!-- /.help-body -->
+
     <div class="help-actions">
-      <button class="primary" onclick="closeHelp()">Rozumím, začínám</button>
+      <button class="primary" onclick="closeHelp()">Zavřít</button>
+    </div>
+  </div>
+</div>
+
+<!-- Validation modal -->
+<div id="val-overlay" onclick="valOverlayClick(event)">
+  <div id="val-modal">
+    <h2>✓ Kontrola grafu</h2>
+    <div class="val-body" id="val-body"></div>
+    <div class="val-actions">
+      <button onclick="closeVal()">Zavřít</button>
+      <button id="val-export-btn" class="primary" onclick="closeVal(); doExport()">Export i přesto</button>
+    </div>
+  </div>
+</div>
+
+<!-- Preview modal -->
+<div id="preview-overlay" onclick="previewOverlayClick(event)">
+  <div id="preview-modal">
+    <h2>Preview .rpy</h2>
+    <div id="preview-filename"></div>
+    <pre id="preview-content"></pre>
+    <div class="preview-actions">
+      <button onclick="closePreview()">Zavřít</button>
     </div>
   </div>
 </div>
@@ -472,11 +736,16 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/litegraph.js@0.7.18/build/litegraph.js"></script>
+<script src="/lib/litegraph/build/litegraph.js"></script>
 <script>
 // ════════════════════════════════════════════════════════
 //  LiteGraph global config
 // ════════════════════════════════════════════════════════
+
+// Remove built-in node types so only renpy/ nodes appear in context menu
+LiteGraph.registered_node_types = {};
+LiteGraph.searchbox_extras = {};
+
 LiteGraph.NODE_TITLE_HEIGHT = 22;
 LiteGraph.NODE_SLOT_HEIGHT = 20;
 LiteGraph.NODE_WIDTH = 220;
@@ -510,6 +779,47 @@ function drawStatusBadge(ctx, node) {
   ctx.arc(node.size[0] - 9, 9, 5, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
+}
+
+let duplicateIds = new Set();
+
+function drawDuplicateBadge(ctx, node) {
+  if (!node.properties || !node.properties.id || !duplicateIds.has(node.properties.id)) return;
+  ctx.save();
+  ctx.fillStyle = "#e74c3c";
+  ctx.beginPath();
+  ctx.arc(8, 8, 5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 8px sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("!", 8, 8);
+  ctx.restore();
+}
+
+function refreshDuplicateIds() {
+  const counts = {};
+  for (const node of graph._nodes || []) {
+    const id = node.properties && node.properties.id;
+    if (id) counts[id] = (counts[id] || 0) + 1;
+  }
+  duplicateIds = new Set(Object.entries(counts).filter(([, c]) => c > 1).map(([id]) => id));
+  if (duplicateIds.size) graph.setDirtyCanvas(true, true);
+}
+
+function updateStats() {
+  const counts = { location: 0, event: 0, item: 0, character: 0 };
+  for (const node of graph._nodes || []) {
+    const t = node.type && node.type.split('/')[1];
+    if (t in counts) counts[t]++;
+  }
+  const parts = [];
+  if (counts.location)  parts.push(`${counts.location} loc`);
+  if (counts.event)     parts.push(`${counts.event} evt`);
+  if (counts.item)      parts.push(`${counts.item} itm`);
+  if (counts.character) parts.push(`${counts.character} chr`);
+  document.getElementById("graph-stats").textContent = parts.length ? "· " + parts.join(' · ') : '';
 }
 
 function escHtml(s) {
@@ -581,13 +891,27 @@ class LocationNode extends LiteGraph.LGraphNode {
   }
 
   onConfigure() {
-    this.syncExitSlots();
+    // Do NOT call syncExitSlots() here — removeOutput() → disconnectOutput() would
+    // delete graph.links entries and null-out target inputs, destroying all connections
+    // during graph.configure(). Instead just sync names in-place.
+    const exits = this.properties.exits || [];
+    if (this.outputs) {
+      for (let i = 0; i < Math.min(exits.length, this.outputs.length); i++) {
+        this.outputs[i].name = exits[i].name || "exit";
+      }
+      while (this.outputs.length > exits.length) this.removeOutput(this.outputs.length - 1);
+      for (let i = this.outputs.length; i < exits.length; i++) {
+        this.addOutput(exits[i].name || "exit", "connection");
+      }
+    }
     this._ensureOneBlankInput();
+    if (this.size) this.size[0] = Math.max(this.size[0], 200);
   }
 
   onDrawForeground(ctx) {
     if (this.flags.collapsed) return;
     drawStatusBadge(ctx, this);
+    drawDuplicateBadge(ctx, this);
   }
 }
 LocationNode.title = "Location";
@@ -639,6 +963,7 @@ class EventNode extends LiteGraph.LGraphNode {
     ctx.fillText(this.properties.trigger || "", 4, this.size[1] - 4);
     ctx.restore();
     drawStatusBadge(ctx, this);
+    drawDuplicateBadge(ctx, this);
   }
 }
 EventNode.title = "Event";
@@ -667,6 +992,7 @@ class ItemNode extends LiteGraph.LGraphNode {
   onDrawForeground(ctx) {
     if (this.flags.collapsed) return;
     drawStatusBadge(ctx, this);
+    drawDuplicateBadge(ctx, this);
   }
 }
 ItemNode.title = "Item";
@@ -696,10 +1022,51 @@ class CharacterNode extends LiteGraph.LGraphNode {
   onDrawForeground(ctx) {
     if (this.flags.collapsed) return;
     drawStatusBadge(ctx, this);
+    drawDuplicateBadge(ctx, this);
   }
 }
 CharacterNode.title = "Character";
 LiteGraph.registerNodeType("renpy/character", CharacterNode);
+
+// ════════════════════════════════════════════════════════
+//  NODE: Note
+// ════════════════════════════════════════════════════════
+class NoteNode extends LiteGraph.LGraphNode {
+  constructor() {
+    super();
+    this.properties = { text: "Poznámka…" };
+    this.color   = "#3d3010";
+    this.bgcolor = "#28200a";
+    this.size = [200, 80];
+  }
+
+  getTitle() { return "Note"; }
+
+  onDrawForeground(ctx) {
+    if (this.flags.collapsed) return;
+    const text = this.properties.text || "";
+    ctx.save();
+    ctx.font = "11px sans-serif";
+    ctx.fillStyle = "#cc9944";
+    ctx.textAlign = "left";
+    const maxWidth = this.size[0] - 14;
+    const lines = [];
+    for (const para of text.split("\n")) {
+      const words = para.split(" ");
+      let line = "";
+      for (const word of words) {
+        const test = line ? line + " " + word : word;
+        if (ctx.measureText(test).width > maxWidth && line) { lines.push(line); line = word; }
+        else line = test;
+      }
+      if (line) lines.push(line);
+    }
+    lines.forEach((l, i) => ctx.fillText(l, 7, 14 + i * 14));
+    ctx.restore();
+  }
+}
+NoteNode.title = "Note";
+LiteGraph.registerNodeType("renpy/note", NoteNode);
 
 // ════════════════════════════════════════════════════════
 //  Graph + Canvas init
@@ -762,7 +1129,7 @@ async function saveGraph() {
   }
 }
 
-graph.onAfterChange = scheduleSave;
+graph.onAfterChange = () => { scheduleSave(); updateStats(); refreshDuplicateIds(); };
 
 // ════════════════════════════════════════════════════════
 //  Properties panel
@@ -816,11 +1183,12 @@ function renderPanel(node) {
     "renpy/event":     "Event",
     "renpy/item":      "Item",
     "renpy/character": "Character",
+    "renpy/note":      "Note",
   };
   document.getElementById("props-header").textContent = typeNames[node.type] || node.type;
 
   const p = node.properties;
-  let html = makeField("prop-id", "ID (Ren'Py)", "text", p.id);
+  let html = node.type === "renpy/note" ? "" : makeField("prop-id", "ID (Ren'Py)", "text", p.id);
 
   if (node.type === "renpy/location") {
     html += makeField("prop-label", "Název", "text", p.label);
@@ -865,6 +1233,8 @@ function renderPanel(node) {
     html += makeField("prop-name", "Jméno", "text", p.name);
     html += makeField("prop-voice", "Hlas / styl (pro AI)", "textarea", p.voice);
     html += makeField("prop-sprite", "Sprite ID", "text", p.sprite_id);
+  } else if (node.type === "renpy/note") {
+    html += makeField("prop-note-text", "Text", "textarea", p.text);
   }
 
   document.getElementById("props-body").innerHTML = html;
@@ -908,6 +1278,13 @@ function attachListeners(node) {
     bind("prop-name",   "name");
     bind("prop-voice",  "voice");
     bind("prop-sprite", "sprite_id");
+  } else if (node.type === "renpy/note") {
+    const el = document.getElementById("prop-note-text");
+    if (el) el.addEventListener("input", () => {
+      node.properties.text = el.value;
+      node.setDirtyCanvas(true, true);
+      scheduleSave();
+    });
   }
 }
 
@@ -966,6 +1343,20 @@ function addNode(type) {
 }
 
 async function exportRpy() {
+  try {
+    const vr = await fetch("/api/validate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(graph.serialize()),
+    });
+    const vdata = await vr.json();
+    if (!vdata.ok) { showValModal(vdata, false); return; }
+    if (vdata.warnings.length) { showValModal(vdata, true); return; }
+  } catch (e) { console.warn("Validation skipped:", e); }
+  await doExport();
+}
+
+async function doExport() {
   statusEl.textContent = "⟳ export…";
   statusEl.style.color = "#aaa";
   try {
@@ -985,9 +1376,7 @@ async function exportRpy() {
     statusEl.textContent = `✓ export: ${n} souborů`;
     statusEl.style.color = "#2ecc71";
     if (data.note) alert("ℹ " + data.note);
-    if (data.errors && data.errors.length) {
-      alert("Chyby při exportu:\n" + data.errors.join("\n"));
-    }
+    if (data.errors && data.errors.length) alert("Chyby při exportu:\n" + data.errors.join("\n"));
   } catch (e) {
     statusEl.textContent = "✗ export chyba";
     statusEl.style.color = "#e74c3c";
@@ -1090,13 +1479,135 @@ function closeHelp() {
   localStorage.setItem(HELP_SEEN_KEY, "1");
 }
 
+function helpTab(btn, id) {
+  document.querySelectorAll(".help-tab").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".help-page").forEach(p => p.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("help-page-" + id).classList.add("active");
+}
+
 function helpOverlayClick(e) {
   if (e.target === document.getElementById("help-overlay")) closeHelp();
 }
 
+// ════════════════════════════════════════════════════════
+//  Validation modal
+// ════════════════════════════════════════════════════════
+async function validateGraph() {
+  try {
+    const r = await fetch("/api/validate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(graph.serialize()),
+    });
+    showValModal(await r.json(), false);
+  } catch (e) {
+    alert("Chyba validace: " + e.message);
+  }
+}
+
+function showValModal(data, canExport) {
+  let html = "";
+  if (!data.errors.length && !data.warnings.length) {
+    html = '<div class="val-ok">✓ Vše v pořádku — žádné chyby ani varování.</div>';
+  }
+  if (data.errors.length) {
+    html += `<div class="val-section">Chyby (${data.errors.length})</div>`;
+    data.errors.forEach(e => {
+      html += `<div class="val-item"><span class="val-icon" style="color:#e74c3c">✗</span><span class="val-text" style="color:#e87070">${escHtml(e)}</span></div>`;
+    });
+  }
+  if (data.warnings.length) {
+    html += `<div class="val-section">Varování (${data.warnings.length})</div>`;
+    data.warnings.forEach(w => {
+      html += `<div class="val-item"><span class="val-icon" style="color:#f39c12">⚠</span><span class="val-text" style="color:#c8a050">${escHtml(w)}</span></div>`;
+    });
+  }
+  document.getElementById("val-body").innerHTML = html;
+  document.getElementById("val-export-btn").style.display = canExport ? "" : "none";
+  document.getElementById("val-overlay").classList.add("open");
+}
+
+function closeVal() { document.getElementById("val-overlay").classList.remove("open"); }
+function valOverlayClick(e) { if (e.target === document.getElementById("val-overlay")) closeVal(); }
+
+// ════════════════════════════════════════════════════════
+//  Preview modal
+// ════════════════════════════════════════════════════════
+async function previewRpy() {
+  if (!selectedNode) { alert("Nejprve klikni na Location nebo Event uzel."); return; }
+  if (!["renpy/location", "renpy/event"].includes(selectedNode.type)) {
+    alert("Preview je dostupný jen pro Location a Event uzly.");
+    return;
+  }
+  try {
+    const r = await fetch("/api/preview-rpy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ graphData: graph.serialize(), lgNodeId: selectedNode.id }),
+    });
+    const data = await r.json();
+    document.getElementById("preview-filename").textContent = data.filename ? "→ " + data.filename : "";
+    document.getElementById("preview-content").textContent = data.content || "";
+    document.getElementById("preview-overlay").classList.add("open");
+  } catch (e) {
+    alert("Chyba preview: " + e.message);
+  }
+}
+
+function closePreview() { document.getElementById("preview-overlay").classList.remove("open"); }
+function previewOverlayClick(e) { if (e.target === document.getElementById("preview-overlay")) closePreview(); }
+
+// ════════════════════════════════════════════════════════
+//  Auto-layout
+// ════════════════════════════════════════════════════════
+function autoLayout() {
+  const nodes = graph._nodes || [];
+  const locs  = nodes.filter(n => n.type === "renpy/location").sort((a, b) => (a.properties.id || "").localeCompare(b.properties.id || ""));
+  const evts  = nodes.filter(n => n.type === "renpy/event").sort((a, b) => (a.properties.id || "").localeCompare(b.properties.id || ""));
+  const items = nodes.filter(n => n.type === "renpy/item").sort((a, b) => (a.properties.id || "").localeCompare(b.properties.id || ""));
+  const chars = nodes.filter(n => n.type === "renpy/character").sort((a, b) => (a.properties.id || "").localeCompare(b.properties.id || ""));
+  const notes = nodes.filter(n => n.type === "renpy/note");
+
+  const COLS = 3, COL_W = 290, COL_H = 130;
+  const START_X = 60, START_Y = 80;
+
+  const locPos = {};
+  locs.forEach((node, i) => {
+    const col = i % COLS, row = Math.floor(i / COLS);
+    node.pos = [START_X + col * COL_W, START_Y + row * COL_H];
+    if (node.properties.id) locPos[node.properties.id] = node.pos;
+  });
+
+  const locRows = {};
+  const EVT_H = 75, EVT_OFFSET = 150;
+  const unplacedEvts = [];
+  evts.forEach(node => {
+    const lp = locPos[node.properties.location_id];
+    if (lp) {
+      const row = locRows[node.properties.location_id] || 0;
+      locRows[node.properties.location_id] = row + 1;
+      node.pos = [lp[0], lp[1] + EVT_OFFSET + row * EVT_H];
+    } else { unplacedEvts.push(node); }
+  });
+
+  const RIGHT_X = START_X + COLS * COL_W + 50;
+  unplacedEvts.forEach((node, i) => { node.pos = [RIGHT_X, START_Y + i * EVT_H]; });
+
+  const SIDE_Y = START_Y + unplacedEvts.length * EVT_H + (unplacedEvts.length ? 40 : 0);
+  items.forEach((node, i) => { node.pos = [RIGHT_X, SIDE_Y + i * 70]; });
+
+  const CHAR_X = RIGHT_X + 240;
+  chars.forEach((node, i) => { node.pos = [CHAR_X, START_Y + i * 70]; });
+  notes.forEach((node, i) => { node.pos = [CHAR_X, START_Y + chars.length * 70 + 50 + i * 110]; });
+
+  graph.setDirtyCanvas(true, true);
+  scheduleSave();
+}
+
 // Close on Escape
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape") { closeConfig(); closeHelp(); }
+  if (e.key === "Escape") { closeConfig(); closeHelp(); closeVal(); closePreview(); }
 });
 
 // ════════════════════════════════════════════════════════
@@ -1111,6 +1622,8 @@ document.addEventListener("keydown", e => {
       lastSavedJson = JSON.stringify(graph.serialize());
       statusEl.textContent = "✓ načteno";
       statusEl.style.color = "#2ecc71";
+      updateStats();
+      refreshDuplicateIds();
     }
   } catch (e) {
     console.error("Chyba načítání grafu:", e);

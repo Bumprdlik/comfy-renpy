@@ -1,3 +1,5 @@
 node_modules/
 .comfy.json
 comfy-graph.json
+dist/
+backups/

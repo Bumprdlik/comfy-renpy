@@ -4,10 +4,13 @@ const path = require('path');
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
+app.use(express.static(path.join(__dirname, 'dist')));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/lib/litegraph', express.static(path.join(__dirname, 'node_modules/litegraph.js')));
 
 const CONFIG_PATH = path.join(__dirname, '.comfy.json');
 let config = { port: 3001, gameDir: '', renpyExe: '' };
+let lastBackupTime = 0;
 
 if (fs.existsSync(CONFIG_PATH)) {
   try {
@@ -46,7 +49,20 @@ app.get('/api/graph', (req, res) => {
 // PUT /api/graph
 app.put('/api/graph', (req, res) => {
   try {
-    fs.writeFileSync(graphFile(), JSON.stringify(req.body, null, 2));
+    const gf = graphFile();
+    const now = Date.now();
+    if (fs.existsSync(gf) && now - lastBackupTime > 2 * 60 * 1000) {
+      const backupDir = path.join(__dirname, 'backups');
+      fs.mkdirSync(backupDir, { recursive: true });
+      const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      fs.copyFileSync(gf, path.join(backupDir, `comfy-graph_${ts}.json`));
+      lastBackupTime = now;
+      const files = fs.readdirSync(backupDir)
+        .filter(f => f.startsWith('comfy-graph_') && f.endsWith('.json'))
+        .sort();
+      while (files.length > 10) fs.unlinkSync(path.join(backupDir, files.shift()));
+    }
+    fs.writeFileSync(gf, JSON.stringify(req.body, null, 2));
     res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -266,6 +282,123 @@ app.get('/api/scan', (req, res) => {
   }
 
   res.json({ nodes: nodeStatuses, drift });
+});
+
+// POST /api/validate
+app.post('/api/validate', (req, res) => {
+  const graphData = req.body;
+  const nodes  = graphData.nodes  || [];
+  const links  = graphData.links  || [];
+  const errors   = [];
+  const warnings = [];
+
+  const locationIds = new Set();
+  const idCount = {};
+
+  for (const node of nodes) {
+    const type = node.type;
+    if (!['renpy/location','renpy/event','renpy/item','renpy/character'].includes(type)) continue;
+    const p  = node.properties || {};
+    const id = p.id;
+    if (!id) {
+      const display = p.label || p.name || `uzel #${node.id}`;
+      errors.push(`${type.split('/')[1]}: "${display}" nemá nastavené ID`);
+    } else {
+      idCount[id] = (idCount[id] || 0) + 1;
+      if (type === 'renpy/location') locationIds.add(id);
+    }
+  }
+
+  for (const [id, count] of Object.entries(idCount)) {
+    if (count > 1) errors.push(`Duplicitní ID "${id}" — použito ${count}×`);
+  }
+
+  for (const node of nodes) {
+    if (node.type !== 'renpy/event') continue;
+    const p = node.properties || {};
+    if (!p.id) continue;
+    if (!p.location_id) {
+      warnings.push(`Event "${p.id}" nemá nastavenou lokaci (location_id)`);
+    } else if (!locationIds.has(p.location_id)) {
+      errors.push(`Event "${p.id}" odkazuje na neexistující lokaci "${p.location_id}"`);
+    }
+  }
+
+  const connectedLgIds = new Set();
+  for (const link of links) { connectedLgIds.add(link[1]); connectedLgIds.add(link[3]); }
+  for (const node of nodes) {
+    if (node.type !== 'renpy/location') continue;
+    const p = node.properties || {};
+    if (p.id && !connectedLgIds.has(node.id)) {
+      warnings.push(`Location "${p.id}" (${p.label || ''}) není propojena s žádnou jinou lokací`);
+    }
+  }
+
+  res.json({ errors, warnings, ok: errors.length === 0 });
+});
+
+// POST /api/preview-rpy
+app.post('/api/preview-rpy', (req, res) => {
+  const { graphData, lgNodeId } = req.body;
+  const nodeById = {};
+  for (const n of (graphData.nodes || [])) nodeById[n.id] = n;
+  const node = nodeById[lgNodeId];
+  if (!node) return res.status(404).json({ error: 'Uzel nenalezen' });
+
+  const exitTargets = {};
+  for (const link of (graphData.links || [])) {
+    const [, originId, originSlot, targetId] = link;
+    const src = nodeById[originId], dst = nodeById[targetId];
+    if (!src || !dst || src.type !== 'renpy/location') continue;
+    if (!exitTargets[originId]) exitTargets[originId] = {};
+    exitTargets[originId][originSlot] = dst.properties.id;
+  }
+
+  const p = node.properties || {};
+  if (node.type === 'renpy/location') {
+    if (!p.id) return res.json({ content: '# Chyba: Location bez ID', filename: null });
+    const locId = p.id;
+    const connMap = exitTargets[node.id] || {};
+    const exits = p.exits || [];
+    let exitsLines = [];
+    if (exits.length === 0) {
+      exitsLines = ['    return'];
+    } else {
+      exitsLines.push('    menu:');
+      for (let i = 0; i < exits.length; i++) {
+        const name = exits[i].name || `exit_${i + 1}`;
+        const targetId = connMap[i];
+        if (targetId) {
+          exitsLines.push(`        "${name}":`, `            jump location_${targetId}`);
+        } else {
+          exitsLines.push(`        "${name}":  # nepropojeno`, `            pass`);
+        }
+      }
+      exitsLines.push(`    jump location_${locId}`);
+    }
+    const content = [
+      markerBlock(locId, 'header', `label location_${locId}:`),
+      '', '    pass  # obsah lokace', '',
+      markerBlock(locId, 'exits', exitsLines.join('\n')),
+    ].join('\n');
+    return res.json({ content, filename: `locations/${locId}.rpy` });
+
+  } else if (node.type === 'renpy/event') {
+    if (!p.id) return res.json({ content: '# Chyba: Event bez ID', filename: null });
+    const evtId = p.id;
+    const headerLines = [`label ${evtId}:`];
+    if (p.prerequisite) { headerLines.push(`    if not (${p.prerequisite}):`, `        return`); }
+    const footerContent = p.location_id ? `    jump location_${p.location_id}` : '    return';
+    const content = [
+      markerBlock(evtId, 'header', headerLines.join('\n')),
+      '', '    pass  # dialog eventu', '',
+      markerBlock(evtId, 'footer', footerContent),
+    ].join('\n');
+    return res.json({ content, filename: `events/${evtId}.rpy` });
+
+  } else {
+    return res.json({ content: `# ${node.type} — tento typ uzlu se neexportuje do .rpy`, filename: null });
+  }
 });
 
 // POST /api/launch

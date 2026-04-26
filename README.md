@@ -9,12 +9,14 @@ Navrhuješ místnosti, propojuješ je exity, přidáváš eventy, itemy a postav
 ## Funkce
 
 - **Grafický editor** místností a jejich propojení (LiteGraph.js)
-- **4 typy uzlů**: Location, Event, Item, Character
+- **5 typů uzlů**: Location, Event, Item, Character, Note
+- **Validace** grafu před exportem (duplicitní ID, chybějící vazby)
 - **Export do .rpy** — generuje stub soubory s `[COMFY-START/END]` markery
+- **Preview** — náhled vygenerovaného `.rpy` bez zápisu na disk
 - **Round-trip bezpečný** — re-export přepíše jen strukturu, tvůj dialog zůstane
 - **Scan** — zobrazí stav každého uzlu (written / stub / missing / drift)
 - **Auto-save** grafu každé 2 sekundy
-- **Zero build step** — čistý Node.js + CDN frontend
+- **TypeScript + Vite** frontend s plnou typovou kontrolou
 
 ## Rychlý start
 
@@ -22,8 +24,15 @@ Navrhuješ místnosti, propojuješ je exity, přidáváš eventy, itemy a postav
 git clone https://github.com/Bumprdlik/comfy-renpy
 cd comfy-renpy
 npm install
-node server.js
-# → http://localhost:3001
+
+# Vývoj — Express :3001 + Vite dev server :5173
+npm run dev
+# → otevři http://localhost:5173
+
+# Produkce
+npm run build   # sestaví frontend do dist/
+npm start       # Express :3001 servíruje dist/
+# → otevři http://localhost:3001
 ```
 
 ## Konfigurace
@@ -61,9 +70,14 @@ Předmět v herním světě. Slouží jako vizuální poznámka — lze ho propo
 ### Character
 Postava s hlasem/stylem (pro AI generování dialogů) a sprite ID.
 
+### Note
+Volná textová poznámka přímo na canvasu. Exportem ani scanem není dotčena.
+
 ## Export a round-trip
 
-Tlačítko **Export .rpy** vygeneruje soubory do `{gameDir}/locations/` a `{gameDir}/events/`.
+Tlačítko **Export .rpy** nejprve validuje graf. Pokud jsou nalezeny chyby nebo varování, zobrazí se dialog — s varováními lze exportovat přesto.
+
+Soubory jdou do `{gameDir}/locations/` a `{gameDir}/events/`.
 
 Každý soubor má strukturu:
 
@@ -100,8 +114,10 @@ Tlačítko **Scan** zkontroluje stav každého uzlu a zobrazí barevný badge:
 
 | Zkratka | Akce |
 |---|---|
-| `Ctrl+klik` na canvas | kontextové menu (přidat uzel) |
-| `Del` na uzlu | smazat uzel |
+| `Pravý klik` na canvas | kontextové menu (přidat uzel) |
+| `Del` / `Backspace` | smazat vybraný uzel nebo hranu |
+| `Ctrl+Z` | undo |
+| `Ctrl+C` / `V` | kopírovat / vložit uzly |
 | `Escape` | zavřít modál |
 
 ## Licence
