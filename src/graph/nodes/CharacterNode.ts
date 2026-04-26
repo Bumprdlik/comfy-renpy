@@ -24,6 +24,14 @@ export class CharacterNode extends LiteGraph.LGraphNode {
 
   onDrawForeground(ctx: CanvasRenderingContext2D): void {
     if (this.flags.collapsed) return;
+    if (this.properties.location_id) {
+      ctx.save();
+      ctx.font = '10px sans-serif';
+      ctx.fillStyle = '#229966';
+      ctx.textAlign = 'left';
+      ctx.fillText('@ ' + this.properties.location_id, 5, 14);
+      ctx.restore();
+    }
     drawStatusBadge(ctx, this);
     drawDuplicateBadge(ctx, this);
   }
