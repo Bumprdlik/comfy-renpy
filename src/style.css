@@ -267,6 +267,17 @@ button.primary:hover { background: var(--accent-hover); }
 #cfg-modal .cfg-hint {
   font-size: 11px; color: var(--text-hint); margin-top: 3px; line-height: 1.4;
 }
+.cfg-input-row {
+  display: flex; gap: 6px; align-items: center;
+}
+.cfg-input-row input { flex: 1; }
+.cfg-browse-btn {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
 #cfg-modal .cfg-actions {
   display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px;
 }

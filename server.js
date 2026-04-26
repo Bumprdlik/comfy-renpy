@@ -35,6 +35,49 @@ app.put('/api/config', (req, res) => {
   res.json({ ok: true });
 });
 
+// POST /api/browse-folder  — opens native Windows FolderBrowserDialog, returns selected path
+app.post('/api/browse-folder', (req, res) => {
+  if (process.platform !== 'win32') return res.json({ path: null });
+  const { execFile } = require('child_process');
+  const initial = String(req.body?.initial || '').replace(/'/g, '');
+  const script = [
+    'Add-Type -AssemblyName System.Windows.Forms',
+    '$d = New-Object System.Windows.Forms.FolderBrowserDialog',
+    '$d.Description = "Vyberte herní adresář (game/)"',
+    '$d.ShowNewFolderButton = $true',
+    initial ? `try { $d.SelectedPath = '${initial}' } catch {}` : '',
+    '$f = New-Object System.Windows.Forms.Form; $f.TopMost = $true',
+    '$r = $d.ShowDialog($f)',
+    'if ($r -eq [System.Windows.Forms.DialogResult]::OK) { $d.SelectedPath }',
+  ].filter(Boolean).join('\n');
+  const encoded = Buffer.from(script, 'utf16le').toString('base64');
+  execFile('powershell', ['-NonInteractive', '-EncodedCommand', encoded], { timeout: 120000 }, (_err, stdout) => {
+    res.json({ path: stdout.trim() || null });
+  });
+});
+
+// POST /api/browse-exe  — opens native Windows OpenFileDialog for .exe, returns selected path
+app.post('/api/browse-exe', (req, res) => {
+  if (process.platform !== 'win32') return res.json({ path: null });
+  const { execFile } = require('child_process');
+  const initial = String(req.body?.initial || '').replace(/'/g, '');
+  const initDir = initial ? `[System.IO.Path]::GetDirectoryName('${initial}')` : '';
+  const script = [
+    'Add-Type -AssemblyName System.Windows.Forms',
+    '$d = New-Object System.Windows.Forms.OpenFileDialog',
+    '$d.Title = "Vyberte Renpy spustitelný soubor"',
+    '$d.Filter = "Renpy|renpy.exe|Executable|*.exe|All files|*.*"',
+    initDir ? `try { $d.InitialDirectory = ${initDir} } catch {}` : '',
+    '$f = New-Object System.Windows.Forms.Form; $f.TopMost = $true',
+    '$r = $d.ShowDialog($f)',
+    'if ($r -eq [System.Windows.Forms.DialogResult]::OK) { $d.FileName }',
+  ].filter(Boolean).join('\n');
+  const encoded = Buffer.from(script, 'utf16le').toString('base64');
+  execFile('powershell', ['-NonInteractive', '-EncodedCommand', encoded], { timeout: 120000 }, (_err, stdout) => {
+    res.json({ path: stdout.trim() || null });
+  });
+});
+
 // GET /api/graph
 app.get('/api/graph', (req, res) => {
   const p = graphFile();

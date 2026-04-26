@@ -45,7 +45,10 @@
     <h2>⚙ Nastavení projektu</h2>
     <div class="field">
       <label for="cfg-gamedir">Herní adresář (gameDir)</label>
-      <input type="text" id="cfg-gamedir" placeholder="C:/mygame/game">
+      <div class="cfg-input-row">
+        <input type="text" id="cfg-gamedir" placeholder="C:/mygame/game">
+        <button class="cfg-browse-btn" onclick="browseGameDir()" title="Vybrat adresář">📁</button>
+      </div>
       <div class="cfg-hint">
         Cesta k adresáři <code>game/</code> tvého Ren'Py projektu.<br>
         Export .rpy bude ukládat soubory sem (do podadresářů <code>locations/</code> a <code>events/</code>).
@@ -53,7 +56,10 @@
     </div>
     <div class="field">
       <label for="cfg-renpyexe">Ren'Py spustitelný soubor (renpyExe)</label>
-      <input type="text" id="cfg-renpyexe" placeholder="C:/renpy/renpy.exe">
+      <div class="cfg-input-row">
+        <input type="text" id="cfg-renpyexe" placeholder="C:/renpy/renpy.exe">
+        <button class="cfg-browse-btn" onclick="browseRenpyExe()" title="Vybrat soubor">📁</button>
+      </div>
       <div class="cfg-hint">Volitelné — potřebné jen pro tlačítko ▶ Spustit.</div>
     </div>
     <div id="cfg-status"></div>

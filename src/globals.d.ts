@@ -122,4 +122,6 @@ interface Window {
   addExit(): void;
   loadExample(): Promise<void>;
   addGroup(): void;
+  browseGameDir(): Promise<void>;
+  browseRenpyExe(): Promise<void>;
 }

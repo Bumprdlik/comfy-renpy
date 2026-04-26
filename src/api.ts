@@ -64,6 +64,26 @@ export async function apiPutConfig(config: ConfigData): Promise<void> {
   if (!r.ok) throw new Error(await r.text());
 }
 
+export async function apiBrowseFolder(initial?: string): Promise<string | null> {
+  const r = await fetch('/api/browse-folder', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ initial: initial ?? '' }),
+  });
+  const d = await r.json() as { path: string | null };
+  return d.path;
+}
+
+export async function apiBrowseExe(initial?: string): Promise<string | null> {
+  const r = await fetch('/api/browse-exe', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ initial: initial ?? '' }),
+  });
+  const d = await r.json() as { path: string | null };
+  return d.path;
+}
+
 export async function apiLaunch(): Promise<{ error?: string; statusText?: string }> {
   const r = await fetch('/api/launch', { method: 'POST' });
   if (!r.ok) return r.json() as Promise<{ error?: string }>;

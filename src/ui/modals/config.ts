@@ -1,4 +1,4 @@
-import { apiGetConfig, apiPutConfig } from '../../api';
+import { apiGetConfig, apiPutConfig, apiBrowseFolder, apiBrowseExe } from '../../api';
 
 const overlay   = document.getElementById('cfg-overlay')  as HTMLElement;
 const gamedirEl = document.getElementById('cfg-gamedir')  as HTMLInputElement;
@@ -25,6 +25,16 @@ export function closeConfig(): void {
 
 export function cfgOverlayClick(e: MouseEvent): void {
   if (e.target === overlay) closeConfig();
+}
+
+export async function browseGameDir(): Promise<void> {
+  const p = await apiBrowseFolder(gamedirEl.value);
+  if (p) gamedirEl.value = p;
+}
+
+export async function browseRenpyExe(): Promise<void> {
+  const p = await apiBrowseExe(renpyExeEl.value);
+  if (p) renpyExeEl.value = p;
 }
 
 export async function saveConfig(): Promise<void> {
