@@ -726,6 +726,8 @@ function addNode(type) {
 }
 
 async function exportRpy() {
+  statusEl.textContent = "⟳ export…";
+  statusEl.style.color = "#aaa";
   try {
     const r = await fetch("/api/export-rpy", {
       method: "POST",
@@ -733,8 +735,22 @@ async function exportRpy() {
       body: JSON.stringify(graph.serialize()),
     });
     const data = await r.json();
-    alert(data.message || "Export hotov.");
+    if (!data.ok) {
+      statusEl.textContent = "✗ export selhal";
+      statusEl.style.color = "#e74c3c";
+      alert(data.error || data.message);
+      return;
+    }
+    const n = data.created.length + data.updated.length;
+    statusEl.textContent = `✓ export: ${n} souborů`;
+    statusEl.style.color = "#2ecc71";
+    if (data.note) alert("ℹ " + data.note);
+    if (data.errors && data.errors.length) {
+      alert("Chyby při exportu:\n" + data.errors.join("\n"));
+    }
   } catch (e) {
+    statusEl.textContent = "✗ export chyba";
+    statusEl.style.color = "#e74c3c";
     alert("Chyba exportu: " + e.message);
   }
 }
