@@ -35,47 +35,50 @@ app.put('/api/config', (req, res) => {
   res.json({ ok: true });
 });
 
-// POST /api/browse-folder  — opens native Windows FolderBrowserDialog, returns selected path
+// POST /api/browse-folder  — VBScript via cscript (fast startup, no PS overhead)
 app.post('/api/browse-folder', (req, res) => {
   if (process.platform !== 'win32') return res.json({ path: null });
   const { execFile } = require('child_process');
-  const initial = String(req.body?.initial || '').replace(/'/g, '');
-  const script = [
-    'Add-Type -AssemblyName System.Windows.Forms',
-    '$d = New-Object System.Windows.Forms.FolderBrowserDialog',
-    '$d.Description = "Vyberte herní adresář (game/)"',
-    '$d.ShowNewFolderButton = $true',
-    initial ? `try { $d.SelectedPath = '${initial}' } catch {}` : '',
-    '$f = New-Object System.Windows.Forms.Form; $f.TopMost = $true',
-    '$r = $d.ShowDialog($f)',
-    'if ($r -eq [System.Windows.Forms.DialogResult]::OK) { $d.SelectedPath }',
-  ].filter(Boolean).join('\n');
-  const encoded = Buffer.from(script, 'utf16le').toString('base64');
-  execFile('powershell', ['-NonInteractive', '-EncodedCommand', encoded], { timeout: 120000 }, (_err, stdout) => {
+  const os = require('os');
+  const initial = String(req.body?.initial || '').replace(/"/g, '');
+  const vbs = [
+    'Dim objShell, objFolder',
+    'Set objShell = CreateObject("Shell.Application")',
+    `Set objFolder = objShell.BrowseForFolder(0, "Vyberte herní adresář (game/)", &H41${initial ? ', "' + initial + '"' : ''})`,
+    'If Not (objFolder Is Nothing) Then',
+    '  WScript.Echo objFolder.Self.Path',
+    'End If',
+  ].join('\r\n');
+  const tmp = path.join(os.tmpdir(), `comfy-folder-${Date.now()}.vbs`);
+  fs.writeFileSync(tmp, vbs, 'ascii');
+  execFile('cscript', ['//NoLogo', '//NoSAFE', tmp], { timeout: 120000 }, (_err, stdout) => {
+    try { fs.unlinkSync(tmp); } catch {}
     res.json({ path: stdout.trim() || null });
   });
 });
 
-// POST /api/browse-exe  — opens native Windows OpenFileDialog for .exe, returns selected path
+// POST /api/browse-exe  — PowerShell OpenFileDialog (exe picker, acceptable one-time delay)
 app.post('/api/browse-exe', (req, res) => {
   if (process.platform !== 'win32') return res.json({ path: null });
   const { execFile } = require('child_process');
+  const os = require('os');
   const initial = String(req.body?.initial || '').replace(/'/g, '');
-  const initDir = initial ? `[System.IO.Path]::GetDirectoryName('${initial}')` : '';
-  const script = [
+  const initDir = initial ? path.dirname(initial) : '';
+  const ps = [
     'Add-Type -AssemblyName System.Windows.Forms',
     '$d = New-Object System.Windows.Forms.OpenFileDialog',
-    '$d.Title = "Vyberte Renpy spustitelný soubor"',
-    '$d.Filter = "Renpy|renpy.exe|Executable|*.exe|All files|*.*"',
-    initDir ? `try { $d.InitialDirectory = ${initDir} } catch {}` : '',
-    '$f = New-Object System.Windows.Forms.Form; $f.TopMost = $true',
-    '$r = $d.ShowDialog($f)',
-    'if ($r -eq [System.Windows.Forms.DialogResult]::OK) { $d.FileName }',
+    '$d.Title = "Vyberte Ren\'Py spustitelný soubor"',
+    '$d.Filter = "Ren\'Py|renpy.exe|Executable|*.exe|All files|*.*"',
+    initDir ? `$d.InitialDirectory = '${initDir}'` : '',
+    'if ($d.ShowDialog() -eq "OK") { $d.FileName }',
   ].filter(Boolean).join('\n');
-  const encoded = Buffer.from(script, 'utf16le').toString('base64');
-  execFile('powershell', ['-NonInteractive', '-EncodedCommand', encoded], { timeout: 120000 }, (_err, stdout) => {
-    res.json({ path: stdout.trim() || null });
-  });
+  const tmp = path.join(os.tmpdir(), `comfy-exe-${Date.now()}.ps1`);
+  fs.writeFileSync(tmp, ps, 'utf8');
+  execFile('powershell', ['-NoProfile', '-NonInteractive', '-STA', '-ExecutionPolicy', 'Bypass', '-File', tmp],
+    { timeout: 120000 }, (_err, stdout) => {
+      try { fs.unlinkSync(tmp); } catch {}
+      res.json({ path: stdout.trim() || null });
+    });
 });
 
 // GET /api/graph
