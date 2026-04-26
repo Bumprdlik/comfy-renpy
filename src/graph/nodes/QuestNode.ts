@@ -1,4 +1,5 @@
 import type { QuestProps } from '../../types';
+import { drawDirtyBadge } from '../helpers';
 
 export class QuestNode extends LiteGraph.LGraphNode {
   declare properties: QuestProps;
@@ -30,6 +31,7 @@ export class QuestNode extends LiteGraph.LGraphNode {
     ctx.textAlign = 'left';
     ctx.fillText(`${stages.length} fází`, 5, 14);
     ctx.restore();
+    drawDirtyBadge(ctx, this);
   }
 }
 

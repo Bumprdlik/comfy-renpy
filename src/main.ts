@@ -16,6 +16,7 @@ import { addNode, addGroup, exportRpy, doExport, scanFiles, launchRenpy, autoLay
 import { initHistory, captureHistory, undo, redo } from './ui/history';
 import { initSearch } from './ui/search';
 import { initMinimap } from './ui/minimap';
+import { loadExportSnapshot } from './ui/dirtyTracker';
 import { openConfig, closeConfig, cfgOverlayClick, saveConfig } from './ui/modals/config';
 import { openHelp, closeHelp, helpTab, helpOverlayClick, maybeShowHelp } from './ui/modals/help';
 import { validateGraph, closeVal, valOverlayClick } from './ui/modals/validate';
@@ -123,6 +124,7 @@ window.loadExample      = loadExample;
     if (data) {
       graph.configure(data);
       setLastSavedJson(JSON.stringify(graph.serialize()));
+      loadExportSnapshot();
       initHistory();
       statusEl.textContent = '✓ načteno';
       statusEl.style.color = '#2ecc71';

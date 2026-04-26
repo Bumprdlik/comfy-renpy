@@ -1,4 +1,5 @@
 import { duplicateIds } from './state';
+import { isDirty } from '../ui/dirtyTracker';
 
 export const STATUS_COLOR: Record<string, string> = {
   written: '#2ecc71',
@@ -33,6 +34,23 @@ export function drawDuplicateBadge(ctx: CanvasRenderingContext2D, node: LGraphNo
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText('!', 8, 8);
+  ctx.restore();
+}
+
+export function drawDirtyBadge(ctx: CanvasRenderingContext2D, node: LGraphNode): void {
+  if (!isDirty(node)) return;
+  const x = node.size[0] - 9;
+  const y = node.size[1] - 9;
+  ctx.save();
+  ctx.fillStyle = '#e67e22';
+  ctx.beginPath();
+  ctx.arc(x, y, 5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 8px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('~', x, y);
   ctx.restore();
 }
 

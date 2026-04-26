@@ -1,4 +1,4 @@
-import { drawStatusBadge, drawDuplicateBadge } from '../helpers';
+import { drawStatusBadge, drawDuplicateBadge, drawDirtyBadge } from '../helpers';
 import type { LocationProps } from '../../types';
 
 export class LocationNode extends LiteGraph.LGraphNode {
@@ -75,6 +75,7 @@ export class LocationNode extends LiteGraph.LGraphNode {
     if (this.flags.collapsed) return;
     drawStatusBadge(ctx, this);
     drawDuplicateBadge(ctx, this);
+    drawDirtyBadge(ctx, this);
   }
 }
 

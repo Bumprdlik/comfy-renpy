@@ -1,5 +1,6 @@
 import { graph, refreshDuplicateIds } from '../graph/state';
 import { scheduleSave, saveGraph, setLastSavedJson, statusEl } from './autosave';
+import { saveExportSnapshot } from './dirtyTracker';
 import { apiExportRpy, apiScan, apiLaunch, apiValidate } from '../api';
 import { showValModal } from './modals/validate';
 import { updateStats } from './stats';
@@ -74,6 +75,8 @@ export async function doExport(): Promise<void> {
     const n = data.created.length + data.updated.length;
     statusEl.textContent = `✓ export: ${n} souborů`;
     statusEl.style.color = '#2ecc71';
+    saveExportSnapshot(graph._nodes);
+    graph.setDirtyCanvas(true, true);
     if (data.note) alert('ℹ ' + data.note);
     if (data.errors?.length) alert('Chyby při exportu:\n' + data.errors.join('\n'));
   } catch (e) {

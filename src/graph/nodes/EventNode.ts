@@ -1,4 +1,4 @@
-import { drawStatusBadge, drawDuplicateBadge } from '../helpers';
+import { drawStatusBadge, drawDuplicateBadge, drawDirtyBadge } from '../helpers';
 import type { EventProps } from '../../types';
 
 export class EventNode extends LiteGraph.LGraphNode {
@@ -49,6 +49,7 @@ export class EventNode extends LiteGraph.LGraphNode {
     ctx.restore();
     drawStatusBadge(ctx, this);
     drawDuplicateBadge(ctx, this);
+    drawDirtyBadge(ctx, this);
   }
 }
 
