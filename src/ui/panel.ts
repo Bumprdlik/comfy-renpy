@@ -78,13 +78,15 @@ export function renderPanel(node: LGraphNode): void {
     html += makeField('prop-notes', 'Poznámky', 'textarea', p['notes']);
 
   } else if (node.type === 'renpy/item') {
-    html += makeField('prop-name', 'Název', 'text', p['name']);
-    html += makeField('prop-desc', 'Popis', 'textarea', p['description']);
+    html += makeField('prop-name',     'Název',              'text',     p['name']);
+    html += makeField('prop-desc',     'Popis',              'textarea', p['description']);
+    html += makeField('prop-location', 'Lokace (location_id)', 'text',   p['location_id']);
 
   } else if (node.type === 'renpy/character') {
-    html += makeField('prop-name', 'Jméno', 'text', p['name']);
-    html += makeField('prop-voice', 'Hlas / styl (pro AI)', 'textarea', p['voice']);
-    html += makeField('prop-sprite', 'Sprite ID', 'text', p['sprite_id']);
+    html += makeField('prop-name',     'Jméno',                'text',     p['name']);
+    html += makeField('prop-location', 'Lokace (location_id)', 'text',     p['location_id']);
+    html += makeField('prop-voice',    'Hlas / styl (pro AI)', 'textarea', p['voice']);
+    html += makeField('prop-sprite',   'Sprite ID',            'text',     p['sprite_id']);
 
   } else if (node.type === 'renpy/note') {
     html += makeField('prop-note-text', 'Text', 'textarea', p['text']);
@@ -135,12 +137,14 @@ function attachListeners(node: LGraphNode): void {
     bind('prop-repeatable',    'repeatable');
     bind('prop-notes',         'notes');
   } else if (node.type === 'renpy/item') {
-    bind('prop-name', 'name');
-    bind('prop-desc', 'description');
+    bind('prop-name',     'name');
+    bind('prop-desc',     'description');
+    bind('prop-location', 'location_id');
   } else if (node.type === 'renpy/character') {
-    bind('prop-name',   'name');
-    bind('prop-voice',  'voice');
-    bind('prop-sprite', 'sprite_id');
+    bind('prop-name',     'name');
+    bind('prop-location', 'location_id');
+    bind('prop-voice',    'voice');
+    bind('prop-sprite',   'sprite_id');
   } else if (node.type === 'renpy/note') {
     const el = document.getElementById('prop-note-text') as HTMLTextAreaElement | null;
     if (el) el.addEventListener('input', () => {

@@ -87,6 +87,15 @@ app.post('/api/export-rpy', (req, res) => {
   const nodeById = {};
   for (const n of (graphData.nodes || [])) nodeById[n.id] = n;
 
+  // Map location_id → lists of items and characters present there
+  const locItems = {}, locChars = {};
+  for (const n of (graphData.nodes || [])) {
+    const lid = n.properties && n.properties.location_id;
+    if (!lid) continue;
+    if (n.type === 'renpy/item')      (locItems[lid] = locItems[lid] || []).push(n.properties.name || n.properties.id);
+    if (n.type === 'renpy/character') (locChars[lid] = locChars[lid] || []).push(n.properties.name || n.properties.id);
+  }
+
   // Build exit connection map: {nodeId: {outputSlot: targetLocationId}}
   const exitTargets = {};
   for (const link of (graphData.links || [])) {
@@ -112,8 +121,11 @@ app.post('/api/export-rpy', (req, res) => {
     const connMap   = exitTargets[node.id] || {};
     const exits     = p.exits || [];
 
-    // header region — just the label declaration
-    const headerContent = `label ${labelName}:`;
+    // header region — label + roster comments
+    const rosterLines = [];
+    if (locChars[locId] && locChars[locId].length) rosterLines.push(`# Postavy: ${locChars[locId].join(', ')}`);
+    if (locItems[locId] && locItems[locId].length)  rosterLines.push(`# Itemy:   ${locItems[locId].join(', ')}`);
+    const headerContent = [`label ${labelName}:`, ...rosterLines].join('\n');
 
     // exits region — navigation menu at the bottom of the location
     let exitsLines = [];
@@ -364,6 +376,16 @@ app.post('/api/validate', (req, res) => {
       warnings.push(`Event "${p.id}" nemá nastavenou lokaci (location_id)`);
     } else if (!locationIds.has(p.location_id)) {
       errors.push(`Event "${p.id}" odkazuje na neexistující lokaci "${p.location_id}"`);
+    }
+  }
+
+  for (const node of nodes) {
+    if (!['renpy/item', 'renpy/character'].includes(node.type)) continue;
+    const p = node.properties || {};
+    if (!p.id || !p.location_id) continue;
+    if (!locationIds.has(p.location_id)) {
+      const kind = node.type === 'renpy/item' ? 'Item' : 'Character';
+      warnings.push(`${kind} "${p.id}" odkazuje na neexistující lokaci "${p.location_id}"`);
     }
   }
 

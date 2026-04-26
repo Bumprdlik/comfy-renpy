@@ -24,6 +24,7 @@ export interface ItemProps {
   id: string;
   name: string;
   description: string;
+  location_id: string;
 }
 
 export interface CharacterProps {
@@ -32,6 +33,7 @@ export interface CharacterProps {
   name: string;
   voice: string;
   sprite_id: string;
+  location_id: string;
 }
 
 export interface NoteProps {

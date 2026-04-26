@@ -11,6 +11,7 @@ export class CharacterNode extends LiteGraph.LGraphNode {
       name: 'New Character',
       voice: '',
       sprite_id: '',
+      location_id: '',
     };
     this.color   = '#0d4a30';
     this.bgcolor = '#062a1a';

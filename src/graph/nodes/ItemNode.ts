@@ -10,6 +10,7 @@ export class ItemNode extends LiteGraph.LGraphNode {
       id: '',
       name: 'New Item',
       description: '',
+      location_id: '',
     };
     this.color   = '#4a1a66';
     this.bgcolor = '#2a0e3d';

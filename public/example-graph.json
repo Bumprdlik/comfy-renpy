@@ -158,7 +158,8 @@
         "id": "elara",
         "name": "Elara",
         "voice": "mysteriózní, tichá, elfský přízvuk",
-        "sprite_id": "elara"
+        "sprite_id": "elara",
+        "location_id": "hospoda"
       }
     },
     {
@@ -173,7 +174,8 @@
         "id": "frantisek",
         "name": "František",
         "voice": "veselý, hlasitý, hospodský",
-        "sprite_id": "frantisek"
+        "sprite_id": "frantisek",
+        "location_id": "hospoda"
       }
     },
     {
@@ -188,7 +190,8 @@
         "id": "mistr_pavel",
         "name": "Mistr Pavel",
         "voice": "přísný, stručný, unavený",
-        "sprite_id": "mistr_pavel"
+        "sprite_id": "mistr_pavel",
+        "location_id": "kovarna"
       }
     },
     {
@@ -202,7 +205,8 @@
       "properties": {
         "id": "stara_mapa",
         "name": "Stará mapa",
-        "description": "Roztrhaná mapa s vyznačeným místem hluboko v lese. Rukopis je elfský."
+        "description": "Roztrhaná mapa s vyznačeným místem hluboko v lese. Rukopis je elfský.",
+        "location_id": "les"
       }
     },
     {
@@ -216,7 +220,8 @@
       "properties": {
         "id": "lektvary",
         "name": "Léčivé lektvary",
-        "description": "Tři lahvičky s rudou tekutinou. František je prodává za přemrštěnou cenu."
+        "description": "Tři lahvičky s rudou tekutinou. František je prodává za přemrštěnou cenu.",
+        "location_id": "hospoda"
       }
     },
     {
@@ -230,7 +235,8 @@
       "properties": {
         "id": "zacarovany_mec",
         "name": "Začarovaný meč",
-        "description": "Meč s runovými nápisy na čepeli. Pavel odmítá říct, odkud ho má."
+        "description": "Meč s runovými nápisy na čepeli. Pavel odmítá říct, odkud ho má.",
+        "location_id": "kovarna"
       }
     },
     {
