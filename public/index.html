@@ -198,6 +198,51 @@
       margin-top: 4px;
     }
     .add-exit-btn:hover { background: #254a25; }
+
+    /* ── Config modal ── */
+    #cfg-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.6);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    #cfg-overlay.open { display: flex; }
+    #cfg-modal {
+      background: #252525;
+      border: 1px solid #444;
+      border-radius: 6px;
+      width: 480px;
+      max-width: 95vw;
+      padding: 20px 24px 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.5);
+    }
+    #cfg-modal h2 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #ccc;
+      margin-bottom: 16px;
+      letter-spacing: 0.3px;
+    }
+    #cfg-modal .cfg-hint {
+      font-size: 11px;
+      color: #555;
+      margin-top: 3px;
+      line-height: 1.4;
+    }
+    #cfg-modal .cfg-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 18px;
+    }
+    #cfg-status {
+      font-size: 11px;
+      margin-top: 10px;
+      min-height: 16px;
+    }
   </style>
 </head>
 <body>
@@ -214,7 +259,34 @@
   <button onclick="exportRpy()">Export .rpy</button>
   <button onclick="scanFiles()">Scan</button>
   <button onclick="launchRenpy()">▶ Spustit</button>
+  <div class="sep"></div>
+  <button onclick="openConfig()">⚙ Nastavení</button>
   <span id="save-status"></span>
+</div>
+
+<!-- Config modal -->
+<div id="cfg-overlay" onclick="cfgOverlayClick(event)">
+  <div id="cfg-modal">
+    <h2>⚙ Nastavení projektu</h2>
+    <div class="field">
+      <label for="cfg-gamedir">Herní adresář (gameDir)</label>
+      <input type="text" id="cfg-gamedir" placeholder="C:/mygame/game">
+      <div class="cfg-hint">
+        Cesta k adresáři <code>game/</code> tvého Ren'Py projektu.<br>
+        Export .rpy bude ukládat soubory sem (do podadresářů <code>locations/</code> a <code>events/</code>).
+      </div>
+    </div>
+    <div class="field">
+      <label for="cfg-renpyexe">Ren'Py spustitelný soubor (renpyExe)</label>
+      <input type="text" id="cfg-renpyexe" placeholder="C:/renpy/renpy.exe">
+      <div class="cfg-hint">Volitelné — potřebné jen pro tlačítko ▶ Spustit.</div>
+    </div>
+    <div id="cfg-status"></div>
+    <div class="cfg-actions">
+      <button onclick="closeConfig()">Zrušit</button>
+      <button class="primary" onclick="saveConfig()">Uložit</button>
+    </div>
+  </div>
 </div>
 
 <div id="workspace">
@@ -786,6 +858,60 @@ async function launchRenpy() {
     alert("Chyba při spouštění: " + e.message);
   }
 }
+
+// ════════════════════════════════════════════════════════
+//  Config modal
+// ════════════════════════════════════════════════════════
+async function openConfig() {
+  const overlay = document.getElementById("cfg-overlay");
+  document.getElementById("cfg-status").textContent = "";
+  try {
+    const r = await fetch("/api/config");
+    const cfg = await r.json();
+    document.getElementById("cfg-gamedir").value  = cfg.gameDir  || "";
+    document.getElementById("cfg-renpyexe").value = cfg.renpyExe || "";
+  } catch (e) {
+    document.getElementById("cfg-status").textContent = "Chyba načítání: " + e.message;
+    document.getElementById("cfg-status").style.color = "#e74c3c";
+  }
+  overlay.classList.add("open");
+  document.getElementById("cfg-gamedir").focus();
+}
+
+function closeConfig() {
+  document.getElementById("cfg-overlay").classList.remove("open");
+}
+
+function cfgOverlayClick(e) {
+  if (e.target === document.getElementById("cfg-overlay")) closeConfig();
+}
+
+async function saveConfig() {
+  const gameDir  = document.getElementById("cfg-gamedir").value.trim();
+  const renpyExe = document.getElementById("cfg-renpyexe").value.trim();
+  const statusEl2 = document.getElementById("cfg-status");
+  statusEl2.textContent = "Ukládám…";
+  statusEl2.style.color = "#aaa";
+  try {
+    const r = await fetch("/api/config", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ gameDir, renpyExe }),
+    });
+    if (!r.ok) throw new Error(await r.text());
+    statusEl2.textContent = "✓ Uloženo";
+    statusEl2.style.color = "#2ecc71";
+    setTimeout(closeConfig, 800);
+  } catch (e) {
+    statusEl2.textContent = "✗ Chyba: " + e.message;
+    statusEl2.style.color = "#e74c3c";
+  }
+}
+
+// Close on Escape
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeConfig();
+});
 
 // ════════════════════════════════════════════════════════
 //  Startup: load saved graph
