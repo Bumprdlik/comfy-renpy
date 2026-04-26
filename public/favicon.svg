@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Hexagon background -->
+  <polygon points="16,1.5 28.5,8.75 28.5,23.25 16,30.5 3.5,23.25 3.5,8.75"
+           fill="#0d1a2e" stroke="#3366bb" stroke-width="1.2"/>
+  <!-- Connection lines -->
+  <line x1="16" y1="16" x2="9"  y2="10" stroke="#5599ee" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="16" y1="16" x2="23" y2="10" stroke="#5599ee" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="16" y1="16" x2="16" y2="24" stroke="#5599ee" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Satellite nodes -->
+  <circle cx="9"  cy="10" r="2.8" fill="#1a3a6a" stroke="#4477cc" stroke-width="1"/>
+  <circle cx="23" cy="10" r="2.8" fill="#1a3a6a" stroke="#4477cc" stroke-width="1"/>
+  <circle cx="16" cy="24" r="2.8" fill="#1a3a6a" stroke="#4477cc" stroke-width="1"/>
+  <!-- Center node (bright) -->
+  <circle cx="16" cy="16" r="4.5" fill="#5599ee" stroke="#88bbff" stroke-width="0.8"/>
+  <!-- Small "R" letter inside center node for Ren'Py -->
+  <text x="16" y="19.5" text-anchor="middle" font-family="Georgia,serif" font-size="6"
+        font-weight="bold" fill="#0d1a2e">R</text>
+</svg>
