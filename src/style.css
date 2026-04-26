@@ -106,6 +106,18 @@ button.primary:hover { background: var(--accent-hover); }
 }
 #graph-canvas { display: block; }
 
+#minimap-canvas {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  border-radius: 5px;
+  cursor: crosshair;
+  opacity: 0.85;
+  transition: opacity 0.15s;
+  z-index: 10;
+}
+#minimap-canvas:hover { opacity: 1; }
+
 /* ── Properties panel ── */
 #props-panel {
   width: 290px;

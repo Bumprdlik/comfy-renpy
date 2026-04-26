@@ -15,6 +15,7 @@ import { renderPanel, clearPanel, updateExit, removeExit, addExit } from './ui/p
 import { addNode, exportRpy, doExport, scanFiles, launchRenpy, autoLayout, loadExample } from './ui/toolbar';
 import { initHistory, captureHistory, undo, redo } from './ui/history';
 import { initSearch } from './ui/search';
+import { initMinimap } from './ui/minimap';
 import { openConfig, closeConfig, cfgOverlayClick, saveConfig } from './ui/modals/config';
 import { openHelp, closeHelp, helpTab, helpOverlayClick, maybeShowHelp } from './ui/modals/help';
 import { validateGraph, closeVal, valOverlayClick } from './ui/modals/validate';
@@ -131,5 +132,6 @@ window.loadExample      = loadExample;
   }
   graph.start();
   initSearch(lgCanvas);
+  initMinimap(lgCanvas, canvasEl);
   maybeShowHelp();
 })();
