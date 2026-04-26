@@ -61,7 +61,17 @@ canvasEl.addEventListener('pointerdown', () => {
 });
 
 document.addEventListener('keydown', (e: KeyboardEvent) => {
-  if (e.key === 'Escape') { closeConfig(); closeHelp(); closeVal(); closePreview(); }
+  if (e.key === 'Escape') { closeConfig(); closeHelp(); closeVal(); closePreview(); return; }
+  const tag = (e.target as HTMLElement).tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  switch (e.key.toLowerCase()) {
+    case 'l': addNode('renpy/location');  break;
+    case 'e': addNode('renpy/event');     break;
+    case 'i': addNode('renpy/item');      break;
+    case 'c': addNode('renpy/character'); break;
+    case 'n': addNode('renpy/note');      break;
+  }
 });
 
 window.addNode          = addNode;

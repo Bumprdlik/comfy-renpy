@@ -114,7 +114,12 @@ Tlačítko **Scan** zkontroluje stav každého uzlu a zobrazí barevný badge:
 
 | Zkratka | Akce |
 |---|---|
-| `Pravý klik` na canvas | kontextové menu (přidat uzel) |
+| `L` | přidat Location uzel |
+| `E` | přidat Event uzel |
+| `I` | přidat Item uzel |
+| `C` | přidat Character uzel |
+| `N` | přidat Note uzel |
+| `Pravý klik` na canvas | kontextové menu |
 | `Del` / `Backspace` | smazat vybraný uzel nebo hranu |
 | `Ctrl+Z` | undo |
 | `Ctrl+C` / `V` | kopírovat / vložit uzly |

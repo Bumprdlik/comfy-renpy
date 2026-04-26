@@ -36,6 +36,7 @@ npm start      # Jen Express :3001 (servíruje dist/)
 - `src/ui/modals/` — config, help, validate, preview modály
 - `src/types.ts` — sdílené TypeScript typy (Props interfaces, API response typy)
 - `src/globals.d.ts` — ambient deklarace LiteGraph globálů + Window augmentace
+- `src/style.css` — CSS s custom properties (`--bg`, `--accent`, `--ok`, `--node-loc`, …)
 - `vite.config.ts` — proxy `/api` a `/lib` na :3001, build outDir `dist/`
 - `.comfy.example.json` — vzorový config
 - `.gitignore` — vylučuje `node_modules/`, `.comfy.json`, `comfy-graph.json`, `dist/`
