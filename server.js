@@ -547,7 +547,7 @@ app.post('/api/preview-rpy', (req, res) => {
 app.post('/api/open-game-dir', (req, res) => {
   const dir = config.gameDir || projectDir;
   const { exec } = require('child_process');
-  const cmd = process.platform === 'win32' ? `explorer "${dir}"`
+  const cmd = process.platform === 'win32' ? `start "" "${dir}"`
             : process.platform === 'darwin' ? `open "${dir}"`
             : `xdg-open "${dir}"`;
   exec(cmd);
