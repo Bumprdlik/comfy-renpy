@@ -347,9 +347,7 @@ app.post('/api/export-rpy', (req, res) => {
     }
   }
 
-  const note = !config.gameDir
-    ? `gameDir není nastaven — soubory uloženy do ${projectDir}`
-    : null;
+  const note = null;
 
   res.json({ ok: true, created, updated, errors, note });
 });
