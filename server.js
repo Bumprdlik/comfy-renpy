@@ -81,6 +81,18 @@ app.post('/api/browse-exe', (req, res) => {
     });
 });
 
+// GET /api/check-graph  — checks if comfy-graph.json exists in current gameDir
+app.get('/api/check-graph', (req, res) => {
+  const p = graphFile();
+  if (!fs.existsSync(p)) return res.json({ exists: false, nodeCount: 0 });
+  try {
+    const data = JSON.parse(fs.readFileSync(p, 'utf8'));
+    res.json({ exists: true, nodeCount: (data.nodes || []).length });
+  } catch {
+    res.json({ exists: false, nodeCount: 0 });
+  }
+});
+
 // GET /api/graph
 app.get('/api/graph', (req, res) => {
   const p = graphFile();

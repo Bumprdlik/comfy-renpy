@@ -64,6 +64,12 @@ export async function apiPutConfig(config: ConfigData): Promise<void> {
   if (!r.ok) throw new Error(await r.text());
 }
 
+export async function apiCheckGraph(): Promise<{ exists: boolean; nodeCount: number }> {
+  const r = await fetch('/api/check-graph');
+  if (!r.ok) return { exists: false, nodeCount: 0 };
+  return r.json() as Promise<{ exists: boolean; nodeCount: number }>;
+}
+
 export async function apiBrowseFolder(initial?: string): Promise<string | null> {
   const r = await fetch('/api/browse-folder', {
     method: 'POST',
