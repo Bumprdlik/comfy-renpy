@@ -14,7 +14,7 @@ const projectDir = process.cwd();
 const serverDir  = __dirname;
 
 const CONFIG_PATH = path.join(projectDir, '.comfy.json');
-let config = { port: 3001, gameDir: '', renpyExe: '' };
+let config = { port: 3001, gameDir: '', renpyExe: '', anthropicKey: '' };
 let lastBackupTime = 0;
 
 if (fs.existsSync(CONFIG_PATH)) {
@@ -35,8 +35,11 @@ function graphFile() {
   return path.join(dir, 'comfy-graph.json');
 }
 
-// GET /api/config — includes projectDir so frontend can show it
-app.get('/api/config', (req, res) => res.json({ ...config, projectDir }));
+// GET /api/config — includes projectDir; never exposes the raw anthropicKey
+app.get('/api/config', (req, res) => {
+  const { anthropicKey, ...safe } = config;
+  res.json({ ...safe, projectDir, hasAnthropicKey: !!anthropicKey });
+});
 
 // PUT /api/config
 app.put('/api/config', (req, res) => {
@@ -534,6 +537,34 @@ app.post('/api/preview-rpy', (req, res) => {
   }
 });
 
+// POST /api/generate-dialogue
+app.post('/api/generate-dialogue', async (req, res) => {
+  const { prompt } = req.body;
+  if (!config.anthropicKey) {
+    return res.json({ prompt, hasKey: false });
+  }
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': config.anthropicKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2048,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error?.message || `HTTP ${r.status}`);
+    res.json({ result: data.content[0].text, hasKey: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // POST /api/launch
 app.post('/api/launch', (req, res) => {
   if (!config.renpyExe) {
@@ -563,7 +594,7 @@ function updateMarkerRegion(fileContent, id, kind, newInner) {
 }
 
 const port = config.port || 3001;
-app.listen(port, () => {
+const server = app.listen(port, () => {
   const url = `http://localhost:${port}`;
   console.log(`⬡  Comfy-Renpy běží na ${url}`);
   console.log(`   Graf: ${graphFile()}`);
@@ -575,5 +606,15 @@ app.listen(port, () => {
               : process.platform === 'darwin'   ? `open "${url}"`
               :                                   `xdg-open "${url}"`;
     exec(cmd);
+  }
+});
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`\n✗  Port ${port} je obsazený — pravděpodobně už běží jiná instance Comfy-Renpy.`);
+    console.error(`   Otevři prohlížeč na http://localhost:${port} nebo ukonči předchozí instanci.\n`);
+    process.exit(1);
+  } else {
+    throw err;
   }
 });
