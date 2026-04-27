@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
@@ -563,6 +564,16 @@ function updateMarkerRegion(fileContent, id, kind, newInner) {
 
 const port = config.port || 3001;
 app.listen(port, () => {
-  console.log(`⬡  Comfy-Renpy běží na http://localhost:${port}`);
+  const url = `http://localhost:${port}`;
+  console.log(`⬡  Comfy-Renpy běží na ${url}`);
   console.log(`   Graf: ${graphFile()}`);
+
+  // Auto-open browser when run as CLI (not during npm run dev where Vite handles it)
+  if (process.env.npm_lifecycle_event !== 'dev') {
+    const { exec } = require('child_process');
+    const cmd = process.platform === 'win32'   ? `start "" "${url}"`
+              : process.platform === 'darwin'   ? `open "${url}"`
+              :                                   `xdg-open "${url}"`;
+    exec(cmd);
+  }
 });
