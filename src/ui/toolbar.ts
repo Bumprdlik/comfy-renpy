@@ -1,7 +1,7 @@
 import { graph, refreshDuplicateIds } from '../graph/state';
 import { scheduleSave, saveGraph, setLastSavedJson, statusEl } from './autosave';
 import { saveExportSnapshot } from './dirtyTracker';
-import { apiExportRpy, apiScan, apiLaunch, apiValidate, apiOpenGameDir } from '../api';
+import { apiExportRpy, apiScan, apiLaunch, apiValidate, apiOpenGameDir, apiOpenVsCode } from '../api';
 import { showValModal } from './modals/validate';
 import { updateStats } from './stats';
 
@@ -179,6 +179,10 @@ export async function loadExample(): Promise<void> {
 
 export async function openGameDir(): Promise<void> {
   await apiOpenGameDir();
+}
+
+export async function openVsCode(): Promise<void> {
+  await apiOpenVsCode();
 }
 
 export { saveGraph };

@@ -131,4 +131,5 @@ interface Window {
   clearApiKey(): void;
   onAiProviderChange(value: string): void;
   openGameDir(): Promise<void>;
+  openVsCode(): Promise<void>;
 }

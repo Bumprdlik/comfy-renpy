@@ -552,6 +552,16 @@ app.post('/api/preview-rpy', (req, res) => {
   }
 });
 
+// POST /api/open-vscode — open gameDir in VS Code
+app.post('/api/open-vscode', (req, res) => {
+  const dir = config.gameDir || projectDir;
+  const { execFile } = require('child_process');
+  execFile('code', [dir], { shell: true }, (err) => {
+    if (err) res.status(500).json({ error: 'VS Code (code) není dostupný v PATH.' });
+    else res.json({ ok: true });
+  });
+});
+
 // POST /api/open-game-dir — open gameDir in system file manager
 app.post('/api/open-game-dir', (req, res) => {
   const dir = config.gameDir || projectDir;

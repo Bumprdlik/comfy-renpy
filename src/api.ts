@@ -70,6 +70,11 @@ export async function apiCheckGraph(): Promise<{ exists: boolean; nodeCount: num
   return r.json() as Promise<{ exists: boolean; nodeCount: number }>;
 }
 
+export async function apiOpenVsCode(): Promise<void> {
+  const r = await fetch('/api/open-vscode', { method: 'POST' });
+  if (!r.ok) { const d = await r.json() as { error?: string }; if (d.error) alert(d.error); }
+}
+
 export async function apiOpenGameDir(): Promise<void> {
   await fetch('/api/open-game-dir', { method: 'POST' });
 }
