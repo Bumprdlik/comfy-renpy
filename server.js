@@ -51,7 +51,7 @@ app.post('/api/browse-folder', (req, res) => {
   ].join('\r\n');
   const tmp = path.join(os.tmpdir(), `comfy-folder-${Date.now()}.vbs`);
   fs.writeFileSync(tmp, vbs, 'ascii');
-  execFile('cscript', ['//NoLogo', '//NoSAFE', tmp], { timeout: 120000 }, (_err, stdout) => {
+  execFile('cscript', ['//NoLogo', '//B', tmp], { timeout: 120000 }, (_err, stdout) => {
     try { fs.unlinkSync(tmp); } catch {}
     res.json({ path: stdout.trim() || null });
   });
