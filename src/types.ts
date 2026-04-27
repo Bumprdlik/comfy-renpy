@@ -76,8 +76,10 @@ export interface PreviewResult {
 export interface ConfigData {
   gameDir?: string;
   renpyExe?: string;
+  anthropicKey?: string;
   port?: number;
   projectDir?: string;
+  hasAnthropicKey?: boolean;
 }
 
 export interface ScanResult {

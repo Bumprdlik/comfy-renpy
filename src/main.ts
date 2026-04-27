@@ -8,16 +8,17 @@ import './graph/nodes/NoteNode';
 import './graph/nodes/QuestNode';
 
 import { graph, refreshDuplicateIds, setSelectedNode } from './graph/state';
-import { apiGetGraph } from './api';
+import { apiGetGraph, apiGetConfig } from './api';
 import { scheduleSave, saveGraph, setLastSavedJson, statusEl } from './ui/autosave';
 import { updateStats } from './ui/stats';
-import { renderPanel, clearPanel, updateExit, removeExit, addExit } from './ui/panel';
+import { renderPanel, clearPanel, updateExit, removeExit, addExit, setPanelHasKey } from './ui/panel';
 import { addNode, addGroup, exportRpy, doExport, scanFiles, launchRenpy, autoLayout, loadExample } from './ui/toolbar';
 import { initHistory, captureHistory, undo, redo } from './ui/history';
 import { initSearch } from './ui/search';
 import { initMinimap } from './ui/minimap';
 import { loadExportSnapshot } from './ui/dirtyTracker';
-import { openConfig, closeConfig, cfgOverlayClick, saveConfig, browseGameDir, browseRenpyExe } from './ui/modals/config';
+import { openConfig, closeConfig, cfgOverlayClick, saveConfig, browseGameDir, browseRenpyExe, clearApiKey } from './ui/modals/config';
+import { openGenerate, closeGenerate, genOverlayClick, copyGenPrompt, runGenerate, copyGenResult } from './ui/modals/generate';
 import { openHelp, closeHelp, helpTab, helpOverlayClick, maybeShowHelp } from './ui/modals/help';
 import { validateGraph, closeVal, valOverlayClick } from './ui/modals/validate';
 import { previewRpy, closePreview, previewOverlayClick } from './ui/modals/preview';
@@ -107,6 +108,13 @@ window.openConfig       = openConfig;
 window.closeConfig      = closeConfig;
 window.cfgOverlayClick  = cfgOverlayClick;
 window.saveConfig       = saveConfig;
+window.clearApiKey      = clearApiKey;
+window.openGenerate     = openGenerate;
+window.closeGenerate    = closeGenerate;
+window.genOverlayClick  = genOverlayClick;
+window.copyGenPrompt    = copyGenPrompt;
+window.runGenerate      = runGenerate;
+window.copyGenResult    = copyGenResult;
 window.openHelp         = openHelp;
 window.closeHelp        = closeHelp;
 window.helpTab          = helpTab;
@@ -122,7 +130,8 @@ window.loadExample      = loadExample;
 
 (async () => {
   try {
-    const data = await apiGetGraph();
+    const [data, cfg] = await Promise.all([apiGetGraph(), apiGetConfig().catch(() => ({ hasAnthropicKey: false }))]);
+    setPanelHasKey((cfg as { hasAnthropicKey?: boolean }).hasAnthropicKey ?? false);
     if (data) {
       graph.configure(data);
       setLastSavedJson(JSON.stringify(graph.serialize()));

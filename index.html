@@ -66,6 +66,14 @@
       </div>
       <div class="cfg-hint">Volitelné — potřebné jen pro tlačítko ▶ Spustit.</div>
     </div>
+    <div class="field">
+      <label for="cfg-apikey">Anthropic API klíč (volitelné, pro ✨ Generovat dialog)</label>
+      <div class="cfg-input-row">
+        <input type="password" id="cfg-apikey" placeholder="sk-ant-...">
+        <button id="cfg-clearkey-btn" class="cfg-browse-btn" onclick="clearApiKey()" title="Odebrat klíč" style="display:none">✕</button>
+      </div>
+      <div class="cfg-hint">Klíč se uloží lokálně do <code>.comfy.json</code>. Pokud je klíč nastaven, pole je prázdné — zadej nový pro změnu.</div>
+    </div>
     <div id="cfg-status"></div>
     <div class="cfg-actions">
       <button onclick="closeConfig()">Zrušit</button>
@@ -306,6 +314,26 @@ label location_kitchen:
     <pre id="preview-content"></pre>
     <div class="preview-actions">
       <button onclick="closePreview()">Zavřít</button>
+    </div>
+  </div>
+</div>
+
+<!-- Generate modal -->
+<div id="gen-overlay" onclick="genOverlayClick(event)">
+  <div id="gen-modal">
+    <h2 id="gen-title">✨ Generovat dialog</h2>
+    <div class="gen-label">Prompt pro AI</div>
+    <textarea id="gen-prompt" rows="10"></textarea>
+    <div id="gen-no-key" class="gen-hint">
+      Anthropic API klíč není nastaven — zkopíruj prompt a vlož ho do <strong>Claude.ai</strong> nebo jiného AI asistenta.
+    </div>
+    <pre id="gen-result" hidden></pre>
+    <div id="gen-status"></div>
+    <div class="gen-actions">
+      <button onclick="closeGenerate()">Zavřít</button>
+      <button id="gen-copy-btn" onclick="copyGenPrompt()">📋 Kopírovat prompt</button>
+      <button id="gen-copy-result-btn" onclick="copyGenResult()">📋 Kopírovat výsledek</button>
+      <button id="gen-api-btn" class="primary" onclick="runGenerate()">✨ Generovat</button>
     </div>
   </div>
 </div>

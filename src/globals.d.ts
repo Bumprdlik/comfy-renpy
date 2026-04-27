@@ -124,4 +124,11 @@ interface Window {
   addGroup(): void;
   browseGameDir(): Promise<void>;
   browseRenpyExe(): Promise<void>;
+  openGenerate(nodeId: number, hasKey: boolean): void;
+  closeGenerate(): void;
+  genOverlayClick(e: MouseEvent): void;
+  copyGenPrompt(): Promise<void>;
+  runGenerate(): Promise<void>;
+  copyGenResult(): Promise<void>;
+  clearApiKey(): void;
 }

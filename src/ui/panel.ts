@@ -3,6 +3,9 @@ import { scheduleSave } from './autosave';
 import { escHtml } from '../graph/helpers';
 import type { LocationNode } from '../graph/nodes/LocationNode';
 
+let _hasAnthropicKey = false;
+export function setPanelHasKey(v: boolean): void { _hasAnthropicKey = v; }
+
 const propsHeader = document.getElementById('props-header') as HTMLElement;
 const propsBody   = document.getElementById('props-body')   as HTMLElement;
 
@@ -76,6 +79,7 @@ export function renderPanel(node: LGraphNode): void {
     html += makeField('prop-priority', 'Priorita', 'number', p['priority']);
     html += makeField('prop-repeatable', 'Opakuje se', 'checkbox', p['repeatable']);
     html += makeField('prop-notes', 'Poznámky', 'textarea', p['notes']);
+    html += `<button class="gen-btn" onclick="openGenerate(${node.id},${_hasAnthropicKey})">✨ Generovat dialog</button>`;
 
   } else if (node.type === 'renpy/item') {
     html += makeField('prop-name',     'Název',              'text',     p['name']);

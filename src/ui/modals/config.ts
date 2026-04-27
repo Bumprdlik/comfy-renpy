@@ -4,10 +4,13 @@ import { saveGraph, setLastSavedJson } from '../autosave';
 import { updateStats } from '../stats';
 import { initHistory } from '../history';
 import { loadExportSnapshot } from '../dirtyTracker';
+import { setPanelHasKey } from '../panel';
 
 const overlay         = document.getElementById('cfg-overlay')         as HTMLElement;
 const gamedirEl       = document.getElementById('cfg-gamedir')         as HTMLInputElement;
 const renpyExeEl      = document.getElementById('cfg-renpyexe')        as HTMLInputElement;
+const anthropicKeyEl  = document.getElementById('cfg-apikey')          as HTMLInputElement;
+const clearKeyBtn     = document.getElementById('cfg-clearkey-btn')    as HTMLButtonElement;
 const statusEl2       = document.getElementById('cfg-status')          as HTMLElement;
 const projectDirRow   = document.getElementById('cfg-projectdir-row')  as HTMLElement;
 const projectDirEl    = document.getElementById('cfg-projectdir')      as HTMLElement;
@@ -15,15 +18,23 @@ const gamedirAutoEl   = document.getElementById('cfg-gamedir-auto')    as HTMLEl
 
 let _openedGameDir = '';
 let _projectDir    = '';
+let _hasKey        = false;
+let _clearKey      = false;
 
 export async function openConfig(): Promise<void> {
   statusEl2.textContent = '';
+  _clearKey = false;
   try {
     const cfg = await apiGetConfig();
     gamedirEl.value  = cfg.gameDir  ?? '';
     renpyExeEl.value = cfg.renpyExe ?? '';
     _openedGameDir   = cfg.gameDir  ?? '';
     _projectDir      = cfg.projectDir ?? '';
+    _hasKey          = cfg.hasAnthropicKey ?? false;
+
+    anthropicKeyEl.value = '';
+    anthropicKeyEl.placeholder = _hasKey ? '(nastaven — zadej nový pro změnu)' : 'sk-ant-...';
+    clearKeyBtn.style.display  = _hasKey ? 'inline-block' : 'none';
 
     if (_projectDir) {
       projectDirEl.textContent  = _projectDir;
@@ -38,6 +49,13 @@ export async function openConfig(): Promise<void> {
   }
   overlay.classList.add('open');
   gamedirEl.focus();
+}
+
+export function clearApiKey(): void {
+  _clearKey = true;
+  anthropicKeyEl.value = '';
+  anthropicKeyEl.placeholder = 'sk-ant-...';
+  clearKeyBtn.style.display = 'none';
 }
 
 export function closeConfig(): void {
@@ -61,13 +79,21 @@ export async function browseRenpyExe(): Promise<void> {
 export async function saveConfig(): Promise<void> {
   const gameDir  = gamedirEl.value.trim();
   const renpyExe = renpyExeEl.value.trim();
+  const apiKey   = anthropicKeyEl.value.trim();
   const gameDirChanged = gameDir !== _openedGameDir;
 
   statusEl2.textContent = 'Ukládám…';
   statusEl2.style.color = '#aaa';
 
   try {
-    await apiPutConfig({ gameDir, renpyExe });
+    const body: Record<string, string | number> = { gameDir, renpyExe };
+    if (apiKey)       body.anthropicKey = apiKey;
+    else if (_clearKey) body.anthropicKey = '';
+    await apiPutConfig(body as import('../../types').ConfigData);
+
+    const newHasKey = apiKey ? true : _clearKey ? false : _hasKey;
+    setPanelHasKey(newHasKey);
+    _hasKey = newHasKey;
 
     if (gameDirChanged && gameDir) {
       statusEl2.textContent = 'Kontroluji projekt…';
