@@ -46,23 +46,29 @@ export class LocationNode extends LiteGraph.LGraphNode {
   }
 
   syncExitSlots(): void {
-    while (this.outputs && this.outputs.length > 0) {
+    // Update in-place to preserve existing LiteGraph connections.
+    // removeOutput() disconnects links, so we avoid it for already-existing slots.
+    const exits = this.properties.exits || [];
+    const existing = this.outputs?.length ?? 0;
+    for (let i = 0; i < Math.min(exits.length, existing); i++) {
+      this.outputs[i].name = exits[i].name || 'exit';
+      this.outputs[i].type = exits[i].bidir ? 'connection-bi' : 'connection';
+    }
+    while (this.outputs && this.outputs.length > exits.length) {
       this.removeOutput(this.outputs.length - 1);
     }
-    for (const exit of (this.properties.exits || [])) {
-      this.addOutput(exit.name || 'exit', exit.bidir ? 'connection-bi' : 'connection');
+    for (let i = (this.outputs?.length ?? 0); i < exits.length; i++) {
+      this.addOutput(exits[i].name || 'exit', exits[i].bidir ? 'connection-bi' : 'connection');
     }
     if (this.size) this.size[0] = Math.max(this.size[0], 200);
   }
 
   onConfigure(): void {
-    // Safe in-place sync — do NOT call syncExitSlots() here.
-    // removeOutput() → disconnectOutput() would delete graph.links entries
-    // during graph.configure(), destroying all connections on reload.
     const exits = this.properties.exits || [];
     if (this.outputs) {
       for (let i = 0; i < Math.min(exits.length, this.outputs.length); i++) {
         this.outputs[i].name = exits[i].name || 'exit';
+        this.outputs[i].type = exits[i].bidir ? 'connection-bi' : 'connection';
       }
       while (this.outputs.length > exits.length) this.removeOutput(this.outputs.length - 1);
       for (let i = this.outputs.length; i < exits.length; i++) {
