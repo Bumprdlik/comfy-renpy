@@ -70,7 +70,7 @@ app.post('/api/browse-folder', (req, res) => {
     });
 });
 
-// POST /api/browse-exe  — PowerShell OpenFileDialog (exe picker, acceptable one-time delay)
+// POST /api/browse-exe  — WPF OpenFileDialog (works from child process without message pump)
 app.post('/api/browse-exe', (req, res) => {
   if (process.platform !== 'win32') return res.json({ path: null });
   const { execFile } = require('child_process');
@@ -78,12 +78,13 @@ app.post('/api/browse-exe', (req, res) => {
   const initial = String(req.body?.initial || '').replace(/'/g, '');
   const initDir = initial ? path.dirname(initial) : '';
   const ps = [
-    'Add-Type -AssemblyName System.Windows.Forms',
-    '$d = New-Object System.Windows.Forms.OpenFileDialog',
+    'Add-Type -AssemblyName PresentationFramework',
+    '$d = New-Object Microsoft.Win32.OpenFileDialog',
     '$d.Title = "Vyberte Ren\'Py spustitelný soubor"',
-    '$d.Filter = "Ren\'Py|renpy.exe|Executable|*.exe|All files|*.*"',
+    '$d.Filter = "Ren\'Py (renpy.exe)|renpy.exe|Executable (*.exe)|*.exe|All files (*.*)|*.*"',
     initDir ? `$d.InitialDirectory = '${initDir}'` : '',
-    'if ($d.ShowDialog() -eq "OK") { $d.FileName }',
+    '$null = $d.ShowDialog()',
+    'if ($d.FileName) { Write-Output $d.FileName }',
   ].filter(Boolean).join('\n');
   const tmp = path.join(os.tmpdir(), `comfy-exe-${Date.now()}.ps1`);
   fs.writeFileSync(tmp, ps, 'utf8');
