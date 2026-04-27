@@ -26,22 +26,22 @@ export async function openConfig(): Promise<void> {
   _clearKey = false;
   try {
     const cfg = await apiGetConfig();
-    gamedirEl.value  = cfg.gameDir  ?? '';
+    _projectDir = cfg.projectDir ?? '';
+    _hasKey     = cfg.hasAnthropicKey ?? false;
+
+    const effectiveGameDir = cfg.gameDir || _projectDir;
+    gamedirEl.value  = effectiveGameDir;
     renpyExeEl.value = cfg.renpyExe ?? '';
-    _openedGameDir   = cfg.gameDir  ?? '';
-    _projectDir      = cfg.projectDir ?? '';
-    _hasKey          = cfg.hasAnthropicKey ?? false;
+    _openedGameDir   = effectiveGameDir;
 
     anthropicKeyEl.value = '';
     anthropicKeyEl.placeholder = _hasKey ? '(nastaven — zadej nový pro změnu)' : 'sk-ant-...';
     clearKeyBtn.style.display  = _hasKey ? 'inline-block' : 'none';
 
     if (_projectDir) {
-      projectDirEl.textContent  = _projectDir;
+      projectDirEl.textContent    = _projectDir;
       projectDirRow.style.display = 'block';
-      gamedirAutoEl.textContent = cfg.gameDir
-        ? ''
-        : `Prázdné = použije se spouštěcí adresář (${_projectDir})`;
+      gamedirAutoEl.textContent   = '';
     }
   } catch (e) {
     statusEl2.textContent = 'Chyba načítání: ' + (e as Error).message;
