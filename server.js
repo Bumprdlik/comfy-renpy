@@ -14,6 +14,10 @@ const projectDir = process.cwd();
 const serverDir  = __dirname;
 
 const CONFIG_PATH = path.join(projectDir, '.comfy.json');
+const { execSync } = require('child_process');
+let hasVsCode = false;
+try { execSync(process.platform === 'win32' ? 'where code' : 'which code', { stdio: 'ignore' }); hasVsCode = true; } catch {}
+
 let config = {
   port: 3001, gameDir: '', renpyExe: '',
   aiProvider: 'none',    // 'none' | 'anthropic' | 'openai'
@@ -54,7 +58,7 @@ function graphFile() {
 // GET /api/config — includes projectDir; never exposes raw keys
 app.get('/api/config', (req, res) => {
   const { anthropicKey, openaiKey, ...safe } = config;
-  res.json({ ...safe, projectDir, hasAnthropicKey: !!anthropicKey, hasOpenaiKey: !!openaiKey });
+  res.json({ ...safe, projectDir, hasAnthropicKey: !!anthropicKey, hasOpenaiKey: !!openaiKey, hasVsCode });
 });
 
 // PUT /api/config

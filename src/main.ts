@@ -137,6 +137,10 @@ window.loadExample      = loadExample;
     const hasAi = (c.aiProvider === 'anthropic' && !!c.hasAnthropicKey)
                || (c.aiProvider === 'openai'    && !!c.hasOpenaiKey);
     setPanelHasKey(hasAi);
+    if (!c.hasVsCode) {
+      const btn = document.querySelector('button[onclick="openVsCode()"]') as HTMLElement | null;
+      if (btn) btn.hidden = true;
+    }
     if (data) {
       graph.configure(data);
       setLastSavedJson(JSON.stringify(graph.serialize()));

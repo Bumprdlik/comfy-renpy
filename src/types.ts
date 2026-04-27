@@ -85,6 +85,7 @@ export interface ConfigData {
   projectDir?: string;
   hasAnthropicKey?: boolean;
   hasOpenaiKey?: boolean;
+  hasVsCode?: boolean;
 }
 
 export interface ScanResult {
