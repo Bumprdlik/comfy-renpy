@@ -130,4 +130,5 @@ interface Window {
   copyGenResult(): Promise<void>;
   clearApiKey(): void;
   onAiProviderChange(value: string): void;
+  openGameDir(): Promise<void>;
 }

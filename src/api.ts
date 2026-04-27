@@ -70,6 +70,10 @@ export async function apiCheckGraph(): Promise<{ exists: boolean; nodeCount: num
   return r.json() as Promise<{ exists: boolean; nodeCount: number }>;
 }
 
+export async function apiOpenGameDir(): Promise<void> {
+  await fetch('/api/open-game-dir', { method: 'POST' });
+}
+
 export async function apiOpenFile(id: string, nodeType: string): Promise<void> {
   await fetch('/api/open-file', {
     method: 'POST',

@@ -1,6 +1,7 @@
 import { drawStatusBadge, drawDuplicateBadge, drawDirtyBadge } from '../helpers';
 import type { LocationProps } from '../../types';
 import { apiOpenFile } from '../../api';
+import { graph } from '../state';
 
 export class LocationNode extends LiteGraph.LGraphNode {
   declare properties: LocationProps;
@@ -77,6 +78,22 @@ export class LocationNode extends LiteGraph.LGraphNode {
     drawStatusBadge(ctx, this);
     drawDuplicateBadge(ctx, this);
     drawDirtyBadge(ctx, this);
+
+    const id = this.properties.id;
+    if (id) {
+      const count = graph._nodes.filter(
+        n => n.type === 'renpy/event' && n.properties['location_id'] === id
+      ).length;
+      if (count > 0) {
+        ctx.save();
+        ctx.font = '9px sans-serif';
+        ctx.fillStyle = '#3a7aaa';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(`◈ ${count} event${count > 1 ? 's' : ''}`, 6, this.size[1] - 4);
+        ctx.restore();
+      }
+    }
   }
 
   getExtraMenuOptions(_canvas: LGraphCanvas, _options: unknown[]) {

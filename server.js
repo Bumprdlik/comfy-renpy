@@ -543,6 +543,17 @@ app.post('/api/preview-rpy', (req, res) => {
   }
 });
 
+// POST /api/open-game-dir — open gameDir in system file manager
+app.post('/api/open-game-dir', (req, res) => {
+  const dir = config.gameDir || projectDir;
+  const { exec } = require('child_process');
+  const cmd = process.platform === 'win32' ? `explorer "${dir}"`
+            : process.platform === 'darwin' ? `open "${dir}"`
+            : `xdg-open "${dir}"`;
+  exec(cmd);
+  res.json({ ok: true });
+});
+
 // POST /api/open-file — open .rpy file in the OS default editor
 app.post('/api/open-file', (req, res) => {
   const { id, nodeType } = req.body;
