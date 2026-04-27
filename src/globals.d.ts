@@ -122,8 +122,6 @@ interface Window {
   addExit(): void;
   loadExample(): Promise<void>;
   addGroup(): void;
-  browseGameDir(): Promise<void>;
-  browseRenpyExe(): Promise<void>;
   openGenerate(nodeId: number, hasKey: boolean): void;
   closeGenerate(): void;
   genOverlayClick(e: MouseEvent): void;

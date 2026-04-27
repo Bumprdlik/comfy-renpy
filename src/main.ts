@@ -17,7 +17,7 @@ import { initHistory, captureHistory, undo, redo } from './ui/history';
 import { initSearch } from './ui/search';
 import { initMinimap } from './ui/minimap';
 import { loadExportSnapshot } from './ui/dirtyTracker';
-import { openConfig, closeConfig, cfgOverlayClick, saveConfig, browseGameDir, browseRenpyExe, clearApiKey } from './ui/modals/config';
+import { openConfig, closeConfig, cfgOverlayClick, saveConfig, clearApiKey } from './ui/modals/config';
 import { openGenerate, closeGenerate, genOverlayClick, copyGenPrompt, runGenerate, copyGenResult } from './ui/modals/generate';
 import { openHelp, closeHelp, helpTab, helpOverlayClick, maybeShowHelp } from './ui/modals/help';
 import { validateGraph, closeVal, valOverlayClick } from './ui/modals/validate';
@@ -94,8 +94,6 @@ document.addEventListener('keydown', (e: KeyboardEvent) => {
 
 window.addNode          = addNode;
 window.addGroup         = addGroup;
-window.browseGameDir    = browseGameDir;
-window.browseRenpyExe   = browseRenpyExe;
 window.saveGraph        = saveGraph;
 window.validateGraph    = validateGraph;
 window.exportRpy        = exportRpy;

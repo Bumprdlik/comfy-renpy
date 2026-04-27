@@ -1,4 +1,4 @@
-import { apiGetConfig, apiPutConfig, apiBrowseFolder, apiBrowseExe, apiCheckGraph, apiGetGraph } from '../../api';
+import { apiGetConfig, apiPutConfig, apiCheckGraph, apiGetGraph } from '../../api';
 import { graph, refreshDuplicateIds } from '../../graph/state';
 import { saveGraph, setLastSavedJson } from '../autosave';
 import { updateStats } from '../stats';
@@ -14,7 +14,6 @@ const clearKeyBtn     = document.getElementById('cfg-clearkey-btn')    as HTMLBu
 const statusEl2       = document.getElementById('cfg-status')          as HTMLElement;
 const projectDirRow   = document.getElementById('cfg-projectdir-row')  as HTMLElement;
 const projectDirEl    = document.getElementById('cfg-projectdir')      as HTMLElement;
-const gamedirAutoEl   = document.getElementById('cfg-gamedir-auto')    as HTMLElement;
 
 let _openedGameDir = '';
 let _projectDir    = '';
@@ -41,7 +40,6 @@ export async function openConfig(): Promise<void> {
     if (_projectDir) {
       projectDirEl.textContent    = _projectDir;
       projectDirRow.style.display = 'block';
-      gamedirAutoEl.textContent   = '';
     }
   } catch (e) {
     statusEl2.textContent = 'Chyba načítání: ' + (e as Error).message;
@@ -66,15 +64,6 @@ export function cfgOverlayClick(e: MouseEvent): void {
   if (e.target === overlay) closeConfig();
 }
 
-export async function browseGameDir(): Promise<void> {
-  const p = await apiBrowseFolder(gamedirEl.value);
-  if (p) gamedirEl.value = p;
-}
-
-export async function browseRenpyExe(): Promise<void> {
-  const p = await apiBrowseExe(renpyExeEl.value);
-  if (p) renpyExeEl.value = p;
-}
 
 export async function saveConfig(): Promise<void> {
   const gameDir  = gamedirEl.value.trim();
