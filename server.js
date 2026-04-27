@@ -87,7 +87,7 @@ app.post('/api/browse-exe', (req, res) => {
   ].filter(Boolean).join('\n');
   const tmp = path.join(os.tmpdir(), `comfy-exe-${Date.now()}.ps1`);
   fs.writeFileSync(tmp, ps, 'utf8');
-  execFile('powershell', ['-NoProfile', '-NonInteractive', '-STA', '-ExecutionPolicy', 'Bypass', '-File', tmp],
+  execFile('powershell', ['-NoProfile', '-STA', '-ExecutionPolicy', 'Bypass', '-File', tmp],
     { timeout: 120000 }, (_err, stdout) => {
       try { fs.unlinkSync(tmp); } catch {}
       res.json({ path: stdout.trim() || null });
