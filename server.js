@@ -35,26 +35,26 @@ app.put('/api/config', (req, res) => {
   res.json({ ok: true });
 });
 
-// POST /api/browse-folder  — VBScript via cscript (fast startup, no PS overhead)
+// POST /api/browse-folder  — PowerShell + Shell.Application COM (no WinForms, fast)
 app.post('/api/browse-folder', (req, res) => {
   if (process.platform !== 'win32') return res.json({ path: null });
   const { execFile } = require('child_process');
   const os = require('os');
-  const initial = String(req.body?.initial || '').replace(/"/g, '');
-  const vbs = [
-    'Dim objShell, objFolder',
-    'Set objShell = CreateObject("Shell.Application")',
-    `Set objFolder = objShell.BrowseForFolder(0, "Vyberte herní adresář (game/)", &H41${initial ? ', "' + initial + '"' : ''})`,
-    'If Not (objFolder Is Nothing) Then',
-    '  WScript.Echo objFolder.Self.Path',
-    'End If',
-  ].join('\r\n');
-  const tmp = path.join(os.tmpdir(), `comfy-folder-${Date.now()}.vbs`);
-  fs.writeFileSync(tmp, vbs, 'ascii');
-  execFile('cscript', ['//NoLogo', '//B', tmp], { timeout: 120000 }, (_err, stdout) => {
-    try { fs.unlinkSync(tmp); } catch {}
-    res.json({ path: stdout.trim() || null });
-  });
+  const initial = String(req.body?.initial || '').replace(/'/g, '');
+  const ps = [
+    '$shell = New-Object -ComObject Shell.Application',
+    initial
+      ? `$folder = $shell.BrowseForFolder(0, "Vyberte herní adresář (game/)", 0, '${initial}')`
+      : `$folder = $shell.BrowseForFolder(0, "Vyberte herní adresář (game/)", 0)`,
+    'if ($folder) { Write-Output $folder.Self.Path }',
+  ].join('\n');
+  const tmp = path.join(os.tmpdir(), `comfy-folder-${Date.now()}.ps1`);
+  fs.writeFileSync(tmp, ps, 'utf8');
+  execFile('powershell', ['-NoProfile', '-NonInteractive', '-STA', '-ExecutionPolicy', 'Bypass', '-File', tmp],
+    { timeout: 120000 }, (_err, stdout) => {
+      try { fs.unlinkSync(tmp); } catch {}
+      res.json({ path: stdout.trim() || null });
+    });
 });
 
 // POST /api/browse-exe  — PowerShell OpenFileDialog (exe picker, acceptable one-time delay)
