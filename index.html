@@ -43,6 +43,9 @@
 <div id="cfg-overlay" onclick="cfgOverlayClick(event)">
   <div id="cfg-modal">
     <h2>⚙ Nastavení projektu</h2>
+    <div id="cfg-projectdir-row" class="cfg-hint" style="margin-bottom:12px;display:none">
+      📂 Spuštěno z: <code id="cfg-projectdir"></code>
+    </div>
     <div class="field">
       <label for="cfg-gamedir">Herní adresář (gameDir)</label>
       <div class="cfg-input-row">
@@ -51,7 +54,8 @@
       </div>
       <div class="cfg-hint">
         Cesta k adresáři <code>game/</code> tvého Ren'Py projektu.<br>
-        Export .rpy bude ukládat soubory sem (do podadresářů <code>locations/</code> a <code>events/</code>).
+        Export .rpy bude ukládat soubory sem (do podadresářů <code>locations/</code> a <code>events/</code>).<br>
+        <span id="cfg-gamedir-auto"></span>
       </div>
     </div>
     <div class="field">

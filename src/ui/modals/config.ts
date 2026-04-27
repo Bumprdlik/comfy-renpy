@@ -5,12 +5,16 @@ import { updateStats } from '../stats';
 import { initHistory } from '../history';
 import { loadExportSnapshot } from '../dirtyTracker';
 
-const overlay    = document.getElementById('cfg-overlay')  as HTMLElement;
-const gamedirEl  = document.getElementById('cfg-gamedir')  as HTMLInputElement;
-const renpyExeEl = document.getElementById('cfg-renpyexe') as HTMLInputElement;
-const statusEl2  = document.getElementById('cfg-status')   as HTMLElement;
+const overlay         = document.getElementById('cfg-overlay')         as HTMLElement;
+const gamedirEl       = document.getElementById('cfg-gamedir')         as HTMLInputElement;
+const renpyExeEl      = document.getElementById('cfg-renpyexe')        as HTMLInputElement;
+const statusEl2       = document.getElementById('cfg-status')          as HTMLElement;
+const projectDirRow   = document.getElementById('cfg-projectdir-row')  as HTMLElement;
+const projectDirEl    = document.getElementById('cfg-projectdir')      as HTMLElement;
+const gamedirAutoEl   = document.getElementById('cfg-gamedir-auto')    as HTMLElement;
 
 let _openedGameDir = '';
+let _projectDir    = '';
 
 export async function openConfig(): Promise<void> {
   statusEl2.textContent = '';
@@ -19,6 +23,15 @@ export async function openConfig(): Promise<void> {
     gamedirEl.value  = cfg.gameDir  ?? '';
     renpyExeEl.value = cfg.renpyExe ?? '';
     _openedGameDir   = cfg.gameDir  ?? '';
+    _projectDir      = cfg.projectDir ?? '';
+
+    if (_projectDir) {
+      projectDirEl.textContent  = _projectDir;
+      projectDirRow.style.display = 'block';
+      gamedirAutoEl.textContent = cfg.gameDir
+        ? ''
+        : `Prázdné = použije se spouštěcí adresář (${_projectDir})`;
+    }
   } catch (e) {
     statusEl2.textContent = 'Chyba načítání: ' + (e as Error).message;
     statusEl2.style.color = '#e74c3c';

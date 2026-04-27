@@ -8,7 +8,11 @@ app.use(express.static(path.join(__dirname, 'dist')));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/lib/litegraph', express.static(path.join(__dirname, 'node_modules/litegraph.js')));
 
-const CONFIG_PATH = path.join(__dirname, '.comfy.json');
+// projectDir = where the user launched the server from (game dir when run from project)
+const projectDir = process.cwd();
+const serverDir  = __dirname;
+
+const CONFIG_PATH = path.join(projectDir, '.comfy.json');
 let config = { port: 3001, gameDir: '', renpyExe: '' };
 let lastBackupTime = 0;
 
@@ -20,13 +24,18 @@ if (fs.existsSync(CONFIG_PATH)) {
   }
 }
 
+console.log(`Comfy-Renpy │ projekt: ${projectDir}`);
+if (projectDir !== serverDir) {
+  console.log(`             │ server:  ${serverDir}`);
+}
+
 function graphFile() {
-  const dir = config.gameDir || __dirname;
+  const dir = config.gameDir || projectDir;
   return path.join(dir, 'comfy-graph.json');
 }
 
-// GET /api/config
-app.get('/api/config', (req, res) => res.json(config));
+// GET /api/config — includes projectDir so frontend can show it
+app.get('/api/config', (req, res) => res.json({ ...config, projectDir }));
 
 // PUT /api/config
 app.put('/api/config', (req, res) => {

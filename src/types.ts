@@ -77,6 +77,7 @@ export interface ConfigData {
   gameDir?: string;
   renpyExe?: string;
   port?: number;
+  projectDir?: string;
 }
 
 export interface ScanResult {
