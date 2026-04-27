@@ -35,6 +35,17 @@ if (projectDir !== serverDir) {
   console.log(`             │ server:  ${serverDir}`);
 }
 
+function openPath(p) {
+  const { execFile, exec } = require('child_process');
+  if (process.platform === 'win32') {
+    execFile('powershell', ['-NoProfile', '-NonInteractive', '-Command', `Invoke-Item -LiteralPath '${p.replace(/'/g, "''")}'`]);
+  } else if (process.platform === 'darwin') {
+    execFile('open', [p]);
+  } else {
+    exec(`xdg-open "${p}"`);
+  }
+}
+
 function graphFile() {
   const dir = config.gameDir || projectDir;
   return path.join(dir, 'comfy-graph.json');
@@ -149,7 +160,7 @@ app.put('/api/graph', (req, res) => {
 // POST /api/export-rpy
 app.post('/api/export-rpy', (req, res) => {
   const graphData = req.body;
-  const gameDir = config.gameDir || path.join(__dirname, 'output');
+  const gameDir = config.gameDir || projectDir;
   const locDir  = path.join(gameDir, 'locations');
   const evtDir  = path.join(gameDir, 'events');
 
@@ -337,7 +348,7 @@ app.post('/api/export-rpy', (req, res) => {
   }
 
   const note = !config.gameDir
-    ? `gameDir není nastaven — soubory uloženy do ${path.join(__dirname, 'output')}`
+    ? `gameDir není nastaven — soubory uloženy do ${projectDir}`
     : null;
 
   res.json({ ok: true, created, updated, errors, note });
@@ -345,7 +356,7 @@ app.post('/api/export-rpy', (req, res) => {
 
 // GET /api/scan
 app.get('/api/scan', (req, res) => {
-  const gameDir  = config.gameDir || path.join(__dirname, 'output');
+  const gameDir  = config.gameDir || projectDir;
   const locDir   = path.join(gameDir, 'locations');
   const evtDir   = path.join(gameDir, 'events');
   const questDir = path.join(gameDir, 'quests');
@@ -546,11 +557,7 @@ app.post('/api/preview-rpy', (req, res) => {
 // POST /api/open-game-dir — open gameDir in system file manager
 app.post('/api/open-game-dir', (req, res) => {
   const dir = config.gameDir || projectDir;
-  const { exec } = require('child_process');
-  const cmd = process.platform === 'win32' ? `start "" "${dir}"`
-            : process.platform === 'darwin' ? `open "${dir}"`
-            : `xdg-open "${dir}"`;
-  exec(cmd);
+  openPath(dir);
   res.json({ ok: true });
 });
 
@@ -565,11 +572,7 @@ app.post('/api/open-file', (req, res) => {
   if (!subdir) return res.status(400).json({ error: 'Nepodporovaný typ uzlu' });
   const filePath = path.join(gameDir, subdir, `${id}.rpy`);
   if (!fs.existsSync(filePath)) return res.status(404).json({ error: `Soubor neexistuje: ${filePath}` });
-  const { exec } = require('child_process');
-  const cmd = process.platform === 'win32' ? `start "" "${filePath}"`
-            : process.platform === 'darwin' ? `open "${filePath}"`
-            : `xdg-open "${filePath}"`;
-  exec(cmd);
+  openPath(filePath);
   res.json({ ok: true });
 });
 
