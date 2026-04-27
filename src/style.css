@@ -222,6 +222,24 @@ button.primary:hover { background: var(--accent-hover); }
 }
 .exit-row .del-btn:hover { background: #5a2020; }
 
+.bidir-btn {
+  flex-shrink: 0;
+  padding: 2px 5px;
+  font-size: 12px;
+  background: var(--bg-input);
+  border-color: var(--border-input);
+  color: var(--text-hint);
+}
+.bidir-btn.active {
+  background: #0a2820;
+  border-color: #44ccaa;
+  color: #44ccaa;
+}
+.exit-ret {
+  width: 55px !important;
+  flex-shrink: 0;
+}
+
 .add-exit-btn {
   width: 100%;
   background: #1e3a1e;

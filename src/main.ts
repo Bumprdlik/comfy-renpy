@@ -11,7 +11,7 @@ import { graph, refreshDuplicateIds, setSelectedNode } from './graph/state';
 import { apiGetGraph, apiGetConfig } from './api';
 import { scheduleSave, saveGraph, setLastSavedJson, statusEl } from './ui/autosave';
 import { updateStats } from './ui/stats';
-import { renderPanel, clearPanel, updateExit, removeExit, addExit, setPanelHasKey } from './ui/panel';
+import { renderPanel, clearPanel, updateExit, updateExitReturn, toggleExitBidir, removeExit, addExit, setPanelHasKey } from './ui/panel';
 import { addNode, addGroup, exportRpy, doExport, scanFiles, launchRenpy, autoLayout, loadExample, openGameDir, openVsCode } from './ui/toolbar';
 import { initHistory, captureHistory, undo, redo } from './ui/history';
 import { initSearch } from './ui/search';
@@ -29,10 +29,11 @@ LiteGraph.NODE_WIDTH = 220;
 LiteGraph.DEFAULT_SHADOW_OFFSET_X = 0;
 LiteGraph.DEFAULT_SHADOW_OFFSET_Y = 0;
 LiteGraph.slot_types_default_color = {
-  connection: '#5599ee',
-  event:      '#ee9933',
-  item:       '#bb55ee',
-  char:       '#33cc88',
+  connection:    '#5599ee',
+  'connection-bi': '#44ccaa',
+  event:         '#ee9933',
+  item:          '#bb55ee',
+  char:          '#33cc88',
 };
 
 const canvasEl  = document.getElementById('graph-canvas') as HTMLCanvasElement;
@@ -126,6 +127,8 @@ window.valOverlayClick  = valOverlayClick;
 window.closePreview     = closePreview;
 window.previewOverlayClick = previewOverlayClick;
 window.updateExit       = updateExit;
+window.updateExitReturn = updateExitReturn;
+window.toggleExitBidir  = toggleExitBidir;
 window.removeExit       = removeExit;
 window.addExit          = addExit;
 window.loadExample      = loadExample;

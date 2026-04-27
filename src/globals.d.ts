@@ -118,6 +118,8 @@ interface Window {
   closePreview(): void;
   previewOverlayClick(e: MouseEvent): void;
   updateExit(i: number, value: string): void;
+  updateExitReturn(i: number, value: string): void;
+  toggleExitBidir(i: number): void;
   removeExit(i: number): void;
   addExit(): void;
   loadExample(): Promise<void>;

@@ -49,11 +49,14 @@ export function renderPanel(node: LGraphNode): void {
     html += makeField('prop-desc', 'Popis', 'textarea', p['description']);
     html += `<hr class="section-div"><div class="section-label">Východy (exits)</div>`;
     html += `<div id="exits-list">`;
-    const exits = (p['exits'] as Array<{name: string}>) || [];
+    const exits = (p['exits'] as import('../types').LocationProps['exits']) || [];
     exits.forEach((exit, i) => {
+      const bidir = exit.bidir ?? false;
       html += `<div class="exit-row">
+        <button class="bidir-btn${bidir ? ' active' : ''}" onclick="toggleExitBidir(${i})" title="${bidir ? 'Obousměrný — klikni pro jednosměrný' : 'Jednosměrný — klikni pro obousměrný'}">↔</button>
         <input type="text" id="exit-${i}" value="${escHtml(exit.name || '')}"
-               placeholder="název" oninput="updateExit(${i},this.value)">
+               placeholder="${bidir ? 'tam' : 'název'}" oninput="updateExit(${i},this.value)">
+        ${bidir ? `<input type="text" id="exit-ret-${i}" value="${escHtml(exit.returnName || '')}" class="exit-ret" placeholder="zpět" oninput="updateExitReturn(${i},this.value)">` : ''}
         <button class="del-btn" onclick="removeExit(${i})">×</button>
       </div>`;
     });
@@ -161,6 +164,26 @@ function attachListeners(node: LGraphNode): void {
     bind('prop-desc',   'description');
     bind('prop-stages', 'stages');
   }
+}
+
+export function toggleExitBidir(i: number): void {
+  const node = getSelectedNode();
+  if (!node || node.type !== 'renpy/location') return;
+  const locNode = node as unknown as LocationNode;
+  const exit = locNode.properties.exits[i];
+  exit.bidir = !exit.bidir;
+  locNode.syncExitSlots();
+  locNode.setDirtyCanvas(true, true);
+  renderPanel(locNode);
+  scheduleSave();
+}
+
+export function updateExitReturn(i: number, value: string): void {
+  const node = getSelectedNode();
+  if (!node || node.type !== 'renpy/location') return;
+  const locNode = node as unknown as LocationNode;
+  locNode.properties.exits[i].returnName = value;
+  scheduleSave();
 }
 
 export function updateExit(i: number, value: string): void {

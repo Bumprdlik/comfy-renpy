@@ -199,6 +199,21 @@ app.post('/api/export-rpy', (req, res) => {
     exitTargets[originId][originSlot] = dst.properties.id;
   }
 
+  // Pre-build reverse exits injected by bidir connections
+  const reverseExits = {}; // { targetLocId: [{ name, fromLocId }] }
+  for (const node of Object.values(nodeById)) {
+    if (node.type !== 'renpy/location') continue;
+    const exits  = node.properties.exits || [];
+    const connMap = exitTargets[node.id] || {};
+    for (let i = 0; i < exits.length; i++) {
+      if (!exits[i].bidir) continue;
+      const targetLocId = connMap[i];
+      if (!targetLocId) continue;
+      const returnName = exits[i].returnName || 'zpět';
+      (reverseExits[targetLocId] = reverseExits[targetLocId] || []).push({ name: returnName, fromLocId: node.properties.id });
+    }
+  }
+
   const created = [], updated = [], errors = [];
 
   // ── Location nodes ──
@@ -219,22 +234,24 @@ app.post('/api/export-rpy', (req, res) => {
     if (locItems[locId] && locItems[locId].length)  rosterLines.push(`# Itemy:   ${locItems[locId].join(', ')}`);
     const headerContent = [`label ${labelName}:`, ...rosterLines].join('\n');
 
+    // Collect all exits: own + injected reverse bidir exits
+    const allExits = exits.map((e, i) => ({ name: e.name || `exit_${i + 1}`, targetId: connMap[i] }));
+    for (const rev of (reverseExits[locId] || [])) {
+      allExits.push({ name: rev.name, targetId: rev.fromLocId });
+    }
+
     // exits region — navigation menu at the bottom of the location
     let exitsLines = [];
-    const connected = exits.filter((_, i) => connMap[i]);
-
-    if (exits.length === 0) {
+    if (allExits.length === 0) {
       exitsLines = ['    return'];
     } else {
       exitsLines.push('    menu:');
-      for (let i = 0; i < exits.length; i++) {
-        const name     = exits[i].name || `exit_${i + 1}`;
-        const targetId = connMap[i];
-        if (targetId) {
-          exitsLines.push(`        "${name}":`);
-          exitsLines.push(`            jump location_${targetId}`);
+      for (const exit of allExits) {
+        if (exit.targetId) {
+          exitsLines.push(`        "${exit.name}":`);
+          exitsLines.push(`            jump location_${exit.targetId}`);
         } else {
-          exitsLines.push(`        "${name}":  # nepropojeno`);
+          exitsLines.push(`        "${exit.name}":  # nepropojeno`);
           exitsLines.push(`            pass`);
         }
       }

@@ -3,7 +3,7 @@ export interface LocationProps {
   id: string;
   label: string;
   description: string;
-  exits: Array<{ name: string }>;
+  exits: Array<{ name: string; bidir?: boolean; returnName?: string }>;
 }
 
 export interface EventProps {

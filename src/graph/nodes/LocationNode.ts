@@ -50,7 +50,7 @@ export class LocationNode extends LiteGraph.LGraphNode {
       this.removeOutput(this.outputs.length - 1);
     }
     for (const exit of (this.properties.exits || [])) {
-      this.addOutput(exit.name || 'exit', 'connection');
+      this.addOutput(exit.name || 'exit', exit.bidir ? 'connection-bi' : 'connection');
     }
     if (this.size) this.size[0] = Math.max(this.size[0], 200);
   }
@@ -66,7 +66,7 @@ export class LocationNode extends LiteGraph.LGraphNode {
       }
       while (this.outputs.length > exits.length) this.removeOutput(this.outputs.length - 1);
       for (let i = this.outputs.length; i < exits.length; i++) {
-        this.addOutput(exits[i].name || 'exit', 'connection');
+        this.addOutput(exits[i].name || 'exit', exits[i].bidir ? 'connection-bi' : 'connection');
       }
     }
     this._ensureOneBlankInput();
