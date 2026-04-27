@@ -100,7 +100,7 @@ export class LocationNode extends LiteGraph.LGraphNode {
     const id = String(this.properties.id ?? '');
     if (!id) return null;
     const self = this;
-    return [null, { content: '📄 Otevřít soubor', callback() { apiOpenFile(id, self.type); } }];
+    return [null, { content: '📄 Otevřít soubor', callback() { apiOpenFile(id, self.type).then(r => { if (r.error) alert('Soubor neexistuje — nejdřív spusť Export .rpy'); }); } }];
   }
 }
 

@@ -74,12 +74,13 @@ export async function apiOpenGameDir(): Promise<void> {
   await fetch('/api/open-game-dir', { method: 'POST' });
 }
 
-export async function apiOpenFile(id: string, nodeType: string): Promise<void> {
-  await fetch('/api/open-file', {
+export async function apiOpenFile(id: string, nodeType: string): Promise<{ ok?: boolean; error?: string }> {
+  const r = await fetch('/api/open-file', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ id, nodeType }),
   });
+  return r.json() as Promise<{ ok?: boolean; error?: string }>;
 }
 
 export async function apiGenerateDialogue(prompt: string): Promise<{ prompt?: string; result?: string; hasKey: boolean; error?: string }> {
