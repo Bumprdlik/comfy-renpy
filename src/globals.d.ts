@@ -129,4 +129,5 @@ interface Window {
   runGenerate(): Promise<void>;
   copyGenResult(): Promise<void>;
   clearApiKey(): void;
+  onAiProviderChange(value: string): void;
 }

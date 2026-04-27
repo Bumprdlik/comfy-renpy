@@ -1,5 +1,6 @@
 import { drawStatusBadge, drawDuplicateBadge, drawDirtyBadge } from '../helpers';
 import type { EventProps } from '../../types';
+import { apiOpenFile } from '../../api';
 
 export class EventNode extends LiteGraph.LGraphNode {
   declare properties: EventProps;
@@ -50,6 +51,13 @@ export class EventNode extends LiteGraph.LGraphNode {
     drawStatusBadge(ctx, this);
     drawDuplicateBadge(ctx, this);
     drawDirtyBadge(ctx, this);
+  }
+
+  getExtraMenuOptions(_canvas: LGraphCanvas, _options: unknown[]) {
+    const id = String(this.properties['id'] ?? '');
+    if (!id) return null;
+    const self = this;
+    return [null, { content: '📄 Otevřít soubor', callback() { apiOpenFile(id, self.type); } }];
   }
 }
 

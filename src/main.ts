@@ -17,7 +17,7 @@ import { initHistory, captureHistory, undo, redo } from './ui/history';
 import { initSearch } from './ui/search';
 import { initMinimap } from './ui/minimap';
 import { loadExportSnapshot } from './ui/dirtyTracker';
-import { openConfig, closeConfig, cfgOverlayClick, saveConfig, clearApiKey } from './ui/modals/config';
+import { openConfig, closeConfig, cfgOverlayClick, saveConfig, clearApiKey, onAiProviderChange } from './ui/modals/config';
 import { openGenerate, closeGenerate, genOverlayClick, copyGenPrompt, runGenerate, copyGenResult } from './ui/modals/generate';
 import { openHelp, closeHelp, helpTab, helpOverlayClick, maybeShowHelp } from './ui/modals/help';
 import { validateGraph, closeVal, valOverlayClick } from './ui/modals/validate';
@@ -106,7 +106,8 @@ window.openConfig       = openConfig;
 window.closeConfig      = closeConfig;
 window.cfgOverlayClick  = cfgOverlayClick;
 window.saveConfig       = saveConfig;
-window.clearApiKey      = clearApiKey;
+window.clearApiKey        = clearApiKey;
+window.onAiProviderChange = onAiProviderChange;
 window.openGenerate     = openGenerate;
 window.closeGenerate    = closeGenerate;
 window.genOverlayClick  = genOverlayClick;
@@ -128,8 +129,11 @@ window.loadExample      = loadExample;
 
 (async () => {
   try {
-    const [data, cfg] = await Promise.all([apiGetGraph(), apiGetConfig().catch(() => ({ hasAnthropicKey: false }))]);
-    setPanelHasKey((cfg as { hasAnthropicKey?: boolean }).hasAnthropicKey ?? false);
+    const [data, cfg] = await Promise.all([apiGetGraph(), apiGetConfig().catch(() => ({}))]);
+    const c = cfg as import('./types').ConfigData;
+    const hasAi = (c.aiProvider === 'anthropic' && !!c.hasAnthropicKey)
+               || (c.aiProvider === 'openai'    && !!c.hasOpenaiKey);
+    setPanelHasKey(hasAi);
     if (data) {
       graph.configure(data);
       setLastSavedJson(JSON.stringify(graph.serialize()));

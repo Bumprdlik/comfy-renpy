@@ -9,33 +9,56 @@ import { setPanelHasKey } from '../panel';
 const overlay         = document.getElementById('cfg-overlay')         as HTMLElement;
 const gamedirEl       = document.getElementById('cfg-gamedir')         as HTMLInputElement;
 const renpyExeEl      = document.getElementById('cfg-renpyexe')        as HTMLInputElement;
+const providerEl      = document.getElementById('cfg-ai-provider')     as HTMLSelectElement;
+const sectionAnthrop  = document.getElementById('cfg-ai-anthropic')    as HTMLElement;
+const sectionOpenai   = document.getElementById('cfg-ai-openai')       as HTMLElement;
 const anthropicKeyEl  = document.getElementById('cfg-apikey')          as HTMLInputElement;
 const clearKeyBtn     = document.getElementById('cfg-clearkey-btn')    as HTMLButtonElement;
+const openaiKeyEl     = document.getElementById('cfg-openai-key')      as HTMLInputElement;
+const openaiUrlEl     = document.getElementById('cfg-openai-url')      as HTMLInputElement;
+const openaiModelEl   = document.getElementById('cfg-openai-model')    as HTMLInputElement;
 const statusEl2       = document.getElementById('cfg-status')          as HTMLElement;
 const projectDirRow   = document.getElementById('cfg-projectdir-row')  as HTMLElement;
 const projectDirEl    = document.getElementById('cfg-projectdir')      as HTMLElement;
 
-let _openedGameDir = '';
-let _projectDir    = '';
-let _hasKey        = false;
-let _clearKey      = false;
+let _openedGameDir  = '';
+let _projectDir     = '';
+let _hasAnthropKey  = false;
+let _hasOpenaiKey   = false;
+let _clearAnthropKey = false;
+let _clearOpenaiKey  = false;
+
+export function onAiProviderChange(value: string): void {
+  sectionAnthrop.hidden = value !== 'anthropic';
+  sectionOpenai.hidden  = value !== 'openai';
+}
 
 export async function openConfig(): Promise<void> {
   statusEl2.textContent = '';
-  _clearKey = false;
+  _clearAnthropKey = false;
+  _clearOpenaiKey  = false;
   try {
     const cfg = await apiGetConfig();
-    _projectDir = cfg.projectDir ?? '';
-    _hasKey     = cfg.hasAnthropicKey ?? false;
+    _projectDir    = cfg.projectDir ?? '';
+    _hasAnthropKey = cfg.hasAnthropicKey ?? false;
+    _hasOpenaiKey  = cfg.hasOpenaiKey    ?? false;
 
     const effectiveGameDir = cfg.gameDir || _projectDir;
     gamedirEl.value  = effectiveGameDir;
     renpyExeEl.value = cfg.renpyExe ?? '';
     _openedGameDir   = effectiveGameDir;
 
-    anthropicKeyEl.value = '';
-    anthropicKeyEl.placeholder = _hasKey ? '(nastaven — zadej nový pro změnu)' : 'sk-ant-...';
-    clearKeyBtn.style.display  = _hasKey ? 'inline-block' : 'none';
+    providerEl.value = cfg.aiProvider ?? 'none';
+    onAiProviderChange(providerEl.value);
+
+    anthropicKeyEl.value       = '';
+    anthropicKeyEl.placeholder = _hasAnthropKey ? '(nastaven — zadej nový pro změnu)' : 'sk-ant-...';
+    clearKeyBtn.style.display  = _hasAnthropKey ? 'inline-block' : 'none';
+
+    openaiKeyEl.value   = '';
+    openaiKeyEl.placeholder = _hasOpenaiKey ? '(nastaven — zadej nový pro změnu)' : 'sk-...';
+    openaiUrlEl.value   = cfg.openaiBaseUrl ?? '';
+    openaiModelEl.value = cfg.openaiModel   ?? '';
 
     if (_projectDir) {
       projectDirEl.textContent    = _projectDir;
@@ -50,7 +73,7 @@ export async function openConfig(): Promise<void> {
 }
 
 export function clearApiKey(): void {
-  _clearKey = true;
+  _clearAnthropKey = true;
   anthropicKeyEl.value = '';
   anthropicKeyEl.placeholder = 'sk-ant-...';
   clearKeyBtn.style.display = 'none';
@@ -64,25 +87,35 @@ export function cfgOverlayClick(e: MouseEvent): void {
   if (e.target === overlay) closeConfig();
 }
 
-
 export async function saveConfig(): Promise<void> {
-  const gameDir  = gamedirEl.value.trim();
-  const renpyExe = renpyExeEl.value.trim();
-  const apiKey   = anthropicKeyEl.value.trim();
+  const gameDir      = gamedirEl.value.trim();
+  const renpyExe     = renpyExeEl.value.trim();
+  const provider     = providerEl.value;
+  const anthropKey   = anthropicKeyEl.value.trim();
+  const openaiKey    = openaiKeyEl.value.trim();
   const gameDirChanged = gameDir !== _openedGameDir;
 
   statusEl2.textContent = 'Ukládám…';
   statusEl2.style.color = '#aaa';
 
   try {
-    const body: Record<string, string | number> = { gameDir, renpyExe };
-    if (apiKey)       body.anthropicKey = apiKey;
-    else if (_clearKey) body.anthropicKey = '';
+    const body: Record<string, string | number> = {
+      gameDir, renpyExe, aiProvider: provider,
+      openaiBaseUrl: openaiUrlEl.value.trim(),
+      openaiModel:   openaiModelEl.value.trim(),
+    };
+    if (anthropKey)          body.anthropicKey = anthropKey;
+    else if (_clearAnthropKey) body.anthropicKey = '';
+    if (openaiKey)           body.openaiKey = openaiKey;
+    else if (_clearOpenaiKey)  body.openaiKey = '';
     await apiPutConfig(body as import('../../types').ConfigData);
 
-    const newHasKey = apiKey ? true : _clearKey ? false : _hasKey;
-    setPanelHasKey(newHasKey);
-    _hasKey = newHasKey;
+    const newHasAnthrop = anthropKey ? true : _clearAnthropKey ? false : _hasAnthropKey;
+    const newHasOpenai  = openaiKey  ? true : _clearOpenaiKey  ? false : _hasOpenaiKey;
+    const hasAi = (provider === 'anthropic' && newHasAnthrop) || (provider === 'openai' && newHasOpenai);
+    setPanelHasKey(hasAi);
+    _hasAnthropKey = newHasAnthrop;
+    _hasOpenaiKey  = newHasOpenai;
 
     if (gameDirChanged && gameDir) {
       statusEl2.textContent = 'Kontroluji projekt…';

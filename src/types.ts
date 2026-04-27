@@ -76,10 +76,15 @@ export interface PreviewResult {
 export interface ConfigData {
   gameDir?: string;
   renpyExe?: string;
+  aiProvider?: string;
   anthropicKey?: string;
+  openaiKey?: string;
+  openaiBaseUrl?: string;
+  openaiModel?: string;
   port?: number;
   projectDir?: string;
   hasAnthropicKey?: boolean;
+  hasOpenaiKey?: boolean;
 }
 
 export interface ScanResult {

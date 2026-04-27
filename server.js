@@ -14,7 +14,12 @@ const projectDir = process.cwd();
 const serverDir  = __dirname;
 
 const CONFIG_PATH = path.join(projectDir, '.comfy.json');
-let config = { port: 3001, gameDir: '', renpyExe: '', anthropicKey: '' };
+let config = {
+  port: 3001, gameDir: '', renpyExe: '',
+  aiProvider: 'none',    // 'none' | 'anthropic' | 'openai'
+  anthropicKey: '',
+  openaiKey: '', openaiBaseUrl: '', openaiModel: '',
+};
 let lastBackupTime = 0;
 
 if (fs.existsSync(CONFIG_PATH)) {
@@ -35,10 +40,10 @@ function graphFile() {
   return path.join(dir, 'comfy-graph.json');
 }
 
-// GET /api/config — includes projectDir; never exposes the raw anthropicKey
+// GET /api/config — includes projectDir; never exposes raw keys
 app.get('/api/config', (req, res) => {
-  const { anthropicKey, ...safe } = config;
-  res.json({ ...safe, projectDir, hasAnthropicKey: !!anthropicKey });
+  const { anthropicKey, openaiKey, ...safe } = config;
+  res.json({ ...safe, projectDir, hasAnthropicKey: !!anthropicKey, hasOpenaiKey: !!openaiKey });
 });
 
 // PUT /api/config
@@ -538,32 +543,74 @@ app.post('/api/preview-rpy', (req, res) => {
   }
 });
 
-// POST /api/generate-dialogue
+// POST /api/open-file — open .rpy file in the OS default editor
+app.post('/api/open-file', (req, res) => {
+  const { id, nodeType } = req.body;
+  const gameDir = config.gameDir || projectDir;
+  const subdir = nodeType === 'renpy/location' ? 'locations'
+               : nodeType === 'renpy/event'    ? 'events'
+               : nodeType === 'renpy/quest'    ? 'quests'
+               : null;
+  if (!subdir) return res.status(400).json({ error: 'Nepodporovaný typ uzlu' });
+  const filePath = path.join(gameDir, subdir, `${id}.rpy`);
+  if (!fs.existsSync(filePath)) return res.status(404).json({ error: `Soubor neexistuje: ${filePath}` });
+  const { exec } = require('child_process');
+  const cmd = process.platform === 'win32' ? `start "" "${filePath}"`
+            : process.platform === 'darwin' ? `open "${filePath}"`
+            : `xdg-open "${filePath}"`;
+  exec(cmd);
+  res.json({ ok: true });
+});
+
+// POST /api/generate-dialogue — Anthropic or OpenAI-compatible
 app.post('/api/generate-dialogue', async (req, res) => {
   const { prompt } = req.body;
-  if (!config.anthropicKey) {
-    return res.json({ prompt, hasKey: false });
+  const provider = config.aiProvider || 'none';
+
+  if (provider === 'anthropic' && config.anthropicKey) {
+    try {
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': config.anthropicKey,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 2048,
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error?.message || `HTTP ${r.status}`);
+      return res.json({ result: data.content[0].text, hasKey: true });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
   }
-  try {
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': config.anthropicKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 2048,
-        messages: [{ role: 'user', content: prompt }],
-      }),
-    });
-    const data = await r.json();
-    if (!r.ok) throw new Error(data.error?.message || `HTTP ${r.status}`);
-    res.json({ result: data.content[0].text, hasKey: true });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
+
+  if (provider === 'openai' && config.openaiKey) {
+    const baseUrl = (config.openaiBaseUrl || 'https://api.openai.com/v1').replace(/\/$/, '');
+    const model   = config.openaiModel || 'gpt-4o-mini';
+    try {
+      const r = await fetch(`${baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${config.openaiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ model, max_tokens: 2048, messages: [{ role: 'user', content: prompt }] }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error?.message || `HTTP ${r.status}`);
+      return res.json({ result: data.choices?.[0]?.message?.content ?? '', hasKey: true });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
   }
+
+  res.json({ prompt, hasKey: false });
 });
 
 // POST /api/launch

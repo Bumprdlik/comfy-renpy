@@ -70,6 +70,23 @@ export async function apiCheckGraph(): Promise<{ exists: boolean; nodeCount: num
   return r.json() as Promise<{ exists: boolean; nodeCount: number }>;
 }
 
+export async function apiOpenFile(id: string, nodeType: string): Promise<void> {
+  await fetch('/api/open-file', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, nodeType }),
+  });
+}
+
+export async function apiGenerateDialogue(prompt: string): Promise<{ prompt?: string; result?: string; hasKey: boolean; error?: string }> {
+  const r = await fetch('/api/generate-dialogue', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt }),
+  });
+  return r.json() as Promise<{ prompt?: string; result?: string; hasKey: boolean; error?: string }>;
+}
+
 export async function apiBrowseFolder(initial?: string): Promise<string | null> {
   const r = await fetch('/api/browse-folder', {
     method: 'POST',

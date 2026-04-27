@@ -60,12 +60,42 @@
       <div class="cfg-hint">Volitelné — potřebné jen pro tlačítko ▶ Spustit.</div>
     </div>
     <div class="field">
-      <label for="cfg-apikey">Anthropic API klíč (volitelné, pro ✨ Generovat dialog)</label>
-      <div class="cfg-input-row">
-        <input type="password" id="cfg-apikey" placeholder="sk-ant-...">
-        <button id="cfg-clearkey-btn" class="cfg-browse-btn" onclick="clearApiKey()" title="Odebrat klíč" style="display:none">✕</button>
+      <label for="cfg-ai-provider">AI provider (pro ✨ Generovat dialog)</label>
+      <select id="cfg-ai-provider" onchange="onAiProviderChange(this.value)">
+        <option value="none">— Bez AI —</option>
+        <option value="anthropic">Anthropic Claude</option>
+        <option value="openai">OpenAI-compatible (DeepSeek, OpenRouter, Venice.ai…)</option>
+      </select>
+    </div>
+    <div id="cfg-ai-anthropic" class="cfg-ai-section" hidden>
+      <div class="field">
+        <label for="cfg-apikey">Anthropic API klíč</label>
+        <div class="cfg-input-row">
+          <input type="password" id="cfg-apikey" placeholder="sk-ant-...">
+          <button id="cfg-clearkey-btn" class="cfg-browse-btn" onclick="clearApiKey()" title="Odebrat klíč" style="display:none">✕</button>
+        </div>
+        <div class="cfg-hint">Klíč se uloží lokálně do <code>.comfy.json</code>. Pokud je nastaven, pole je prázdné — zadej nový pro změnu.</div>
       </div>
-      <div class="cfg-hint">Klíč se uloží lokálně do <code>.comfy.json</code>. Pokud je klíč nastaven, pole je prázdné — zadej nový pro změnu.</div>
+    </div>
+    <div id="cfg-ai-openai" class="cfg-ai-section" hidden>
+      <div class="field">
+        <label for="cfg-openai-key">API klíč</label>
+        <input type="password" id="cfg-openai-key" placeholder="sk-...">
+      </div>
+      <div class="field">
+        <label for="cfg-openai-url">Base URL</label>
+        <input type="text" id="cfg-openai-url" placeholder="https://api.deepseek.com/v1">
+      </div>
+      <div class="field">
+        <label for="cfg-openai-model">Model</label>
+        <input type="text" id="cfg-openai-model" placeholder="deepseek-chat">
+      </div>
+      <div class="cfg-hint">
+        Příklady: <strong>DeepSeek</strong> — <code>api.deepseek.com/v1</code> / <code>deepseek-chat</code><br>
+        <strong>OpenRouter</strong> — <code>openrouter.ai/api/v1</code> / <code>mistralai/mistral-7b-instruct</code><br>
+        <strong>Venice.ai</strong> — <code>api.venice.ai/api/v1</code> / <code>venice-uncensored</code><br>
+        <strong>Lokální Ollama</strong> — <code>localhost:11434/v1</code> / <code>llama3</code>
+      </div>
     </div>
     <div id="cfg-status"></div>
     <div class="cfg-actions">

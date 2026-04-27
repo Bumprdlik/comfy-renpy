@@ -282,6 +282,7 @@ button.primary:hover { background: var(--accent-hover); }
   display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px;
 }
 #cfg-status { font-size: 11px; margin-top: 10px; min-height: 16px; }
+.cfg-ai-section { padding-left: 10px; border-left: 2px solid var(--bg-btn); margin-bottom: 4px; }
 
 /* ── Help modal ── */
 #help-overlay {
