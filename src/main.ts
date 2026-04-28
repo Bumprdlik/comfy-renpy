@@ -49,6 +49,21 @@ const _ltColors = (LiteGraph.LGraphCanvas as unknown as { link_type_colors: Reco
 _ltColors['connection']    = '#5599ee';
 _ltColors['connection-bi'] = '#44ccaa';
 
+// Flatten the Add Node context menu: skip the "renpy" category, show types directly
+(LiteGraph.LGraphCanvas as unknown as Record<string, unknown>)['onMenuAdd'] = function(
+  _node: unknown, _options: unknown, e: MouseEvent, prev_menu: unknown
+) {
+  const entries = Object.keys(LiteGraph.registered_node_types).map(type => {
+    const label = type.split('/').pop()!;
+    return {
+      content: label.charAt(0).toUpperCase() + label.slice(1),
+      callback() { window.addNode(type); },
+    };
+  });
+  const CtxMenu = (LiteGraph as unknown as Record<string, new (...a: unknown[]) => unknown>)['ContextMenu'];
+  new CtxMenu(entries, { event: e, parentMenu: prev_menu });
+};
+
 // Render bidir connections as a double cable (two parallel lines 5px apart)
 const _origRenderLink = (LiteGraph.LGraphCanvas.prototype as unknown as Record<string, unknown>)['renderLink'] as (...a: unknown[]) => unknown;
 (LiteGraph.LGraphCanvas.prototype as unknown as Record<string, unknown>)['renderLink'] = function(...args: unknown[]) {
