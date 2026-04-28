@@ -149,7 +149,7 @@ export function autoLayout(): void {
   quests.forEach((node, i) => { node.pos = [IQ_X, questY + i * 110]; });
 
   // Col 3 — Characters, then Notes below
-  const CN_X = IQ_X + 240;
+  const CN_X = IQ_X + 290;
   chars.forEach((node, i) => { node.pos = [CN_X, START_Y + i * 70]; });
   const noteY = START_Y + chars.length * 70 + (chars.length ? 30 : 0);
   notes.forEach((node, i) => { node.pos = [CN_X, noteY + i * 110]; });
