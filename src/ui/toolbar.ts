@@ -170,17 +170,17 @@ export function autoLayout(): void {
     const maxY = Math.max(...nodeList.map(n => n.pos[1] + n.size[1])) + PAD;
     const g = new LiteGraph.LGraphGroup(title);
     g.color = color;
-    g.font_size = 16;
+    g.font_size = 20;
     g.pos  = [minX, minY];
     g.size = [maxX - minX, maxY - minY];
     (g as unknown as Record<string, unknown>)['graph'] = graph;
     graph._groups.push(g);
   }
 
-  makeGroup('Lokace',          '#1e3347', locs);
-  makeGroup('Eventy',          '#3d2010', evts);
-  makeGroup('Items & Questy',  '#2d1a40', [...items, ...quests]);
-  makeGroup('Postavy & Notes', '#0d2d20', [...chars, ...notes]);
+  makeGroup('Lokace',          '#2288cc', locs);
+  makeGroup('Eventy',          '#cc5500', evts);
+  makeGroup('Items & Questy',  '#9933cc', [...items, ...quests]);
+  makeGroup('Postavy & Notes', '#22aa66', [...chars, ...notes]);
 
   graph.setDirtyCanvas(true, true);
   scheduleSave();
