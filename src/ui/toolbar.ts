@@ -121,59 +121,38 @@ export function autoLayout(): void {
   const chars = nodes.filter(n => n.type === 'renpy/character').sort((a, b) => String(a.properties['id'] || '').localeCompare(String(b.properties['id'] || '')));
   const notes = nodes.filter(n => n.type === 'renpy/note');
 
-  const COLS = 3, COL_W = 290;
+  const quests = nodes.filter(n => n.type === 'renpy/quest').sort((a, b) => String(a.properties['id'] || '').localeCompare(String(b.properties['id'] || '')));
+
+  const COLS = 3, COL_W = 290, COL_H = 130;
   const START_X = 60, START_Y = 80;
-  const EVT_H = 75, EVT_OFFSET = 110;
 
-  // Count events per location to calculate dynamic row heights
-  const evtCountByLoc: Record<string, number> = {};
-  for (const evt of evts) {
-    const lid = evt.properties['location_id'] as string;
-    if (lid) evtCountByLoc[lid] = (evtCountByLoc[lid] || 0) + 1;
-  }
-
-  // Each row height = max events in that row × EVT_H + offset + padding
-  const rowCount = Math.ceil(locs.length / COLS);
-  const rowStartY: number[] = new Array(rowCount).fill(0);
-  rowStartY[0] = START_Y;
-  for (let r = 1; r < rowCount; r++) {
-    let maxEvts = 0;
-    for (let i = (r - 1) * COLS; i < Math.min(r * COLS, locs.length); i++) {
-      const lid = locs[i].properties['id'] as string;
-      maxEvts = Math.max(maxEvts, evtCountByLoc[lid] || 0);
-    }
-    rowStartY[r] = rowStartY[r - 1] + Math.max(EVT_OFFSET + maxEvts * EVT_H + 40, 130);
-  }
-
-  const locPos: Record<string, [number, number]> = {};
+  // Locations: simple fixed-height grid (no events below them)
   locs.forEach((node, i) => {
-    const col = i % COLS, row = Math.floor(i / COLS);
-    node.pos = [START_X + col * COL_W, rowStartY[row]];
-    const id = node.properties['id'] as string;
-    if (id) locPos[id] = node.pos;
+    node.pos = [START_X + (i % COLS) * COL_W, START_Y + Math.floor(i / COLS) * COL_H];
   });
 
-  const locRows: Record<string, number> = {};
-  const unplacedEvts: LGraphNode[] = [];
-  evts.forEach(node => {
-    const lid = node.properties['location_id'] as string;
-    const lp = locPos[lid];
-    if (lp) {
-      const row = locRows[lid] || 0;
-      locRows[lid] = row + 1;
-      node.pos = [lp[0], lp[1] + EVT_OFFSET + row * EVT_H];
-    } else { unplacedEvts.push(node); }
+  // Right-side columns
+  const RIGHT_X = START_X + COLS * COL_W + 60;
+
+  // Col 1 — Events, sorted by location_id so same-location events are adjacent
+  evts.sort((a, b) => {
+    const la = String(a.properties['location_id'] || '');
+    const lb = String(b.properties['location_id'] || '');
+    return la !== lb ? la.localeCompare(lb) : String(a.properties['id'] || '').localeCompare(String(b.properties['id'] || ''));
   });
+  evts.forEach((node, i) => { node.pos = [RIGHT_X, START_Y + i * 80]; });
 
-  const RIGHT_X = START_X + COLS * COL_W + 50;
-  unplacedEvts.forEach((node, i) => { node.pos = [RIGHT_X, START_Y + i * EVT_H]; });
+  // Col 2 — Items, then Quests below
+  const IQ_X = RIGHT_X + 260;
+  items.forEach((node, i) => { node.pos = [IQ_X, START_Y + i * 70]; });
+  const questY = START_Y + items.length * 70 + (items.length ? 30 : 0);
+  quests.forEach((node, i) => { node.pos = [IQ_X, questY + i * 110]; });
 
-  const SIDE_Y = START_Y + unplacedEvts.length * EVT_H + (unplacedEvts.length ? 40 : 0);
-  items.forEach((node, i) => { node.pos = [RIGHT_X, SIDE_Y + i * 70]; });
-
-  const CHAR_X = RIGHT_X + 240;
-  chars.forEach((node, i) => { node.pos = [CHAR_X, START_Y + i * 70]; });
-  notes.forEach((node, i) => { node.pos = [CHAR_X, START_Y + chars.length * 70 + 50 + i * 110]; });
+  // Col 3 — Characters, then Notes below
+  const CN_X = IQ_X + 240;
+  chars.forEach((node, i) => { node.pos = [CN_X, START_Y + i * 70]; });
+  const noteY = START_Y + chars.length * 70 + (chars.length ? 30 : 0);
+  notes.forEach((node, i) => { node.pos = [CN_X, noteY + i * 110]; });
 
   graph.setDirtyCanvas(true, true);
   scheduleSave();
