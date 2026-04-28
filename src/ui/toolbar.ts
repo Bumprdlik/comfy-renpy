@@ -125,14 +125,29 @@ export function autoLayout(): void {
 
   const COLS = 3, COL_W = 290, COL_H = 130;
   const START_X = 60, START_Y = 80;
+  const PAD = 20;  // group padding (same as makeGroup below)
+  const GAP = 40;  // equal visual gap between group borders
 
-  // Locations: simple fixed-height grid (no events below them)
+  // Actual max node widths — layout expands if nodes are wider than default
+  const locW = locs.length  ? Math.max(...locs.map(n => n.size[0]))                       : 220;
+  const evtW = evts.length  ? Math.max(...evts.map(n => n.size[0]))                       : 220;
+  const iqW  = (items.length || quests.length)
+               ? Math.max(...[...items, ...quests].map(n => n.size[0]))                    : 220;
+
+  // Locations: fixed-height grid
   locs.forEach((node, i) => {
     node.pos = [START_X + (i % COLS) * COL_W, START_Y + Math.floor(i / COLS) * COL_H];
   });
 
-  // Right-side columns
-  const RIGHT_X = START_X + COLS * COL_W + 60;
+  // Right edge of the Lokace group = rightmost node right edge + PAD
+  const lastLocCol  = locs.length ? Math.min(locs.length - 1, COLS - 1) : 0;
+  const locsGroupR  = START_X + lastLocCol * COL_W + locW + PAD;
+
+  // Each subsequent column starts so its group left edge = previous group right edge + GAP
+  // group left edge = colX - PAD  →  colX = prevGroupR + GAP + PAD
+  const RIGHT_X = locsGroupR + GAP + PAD;
+  const IQ_X   = RIGHT_X + evtW + PAD + GAP + PAD;
+  const CN_X   = IQ_X   + iqW  + PAD + GAP + PAD;
 
   // Col 1 — Events, sorted by location_id so same-location events are adjacent
   evts.sort((a, b) => {
@@ -143,13 +158,11 @@ export function autoLayout(): void {
   evts.forEach((node, i) => { node.pos = [RIGHT_X, START_Y + i * 80]; });
 
   // Col 2 — Items, then Quests below
-  const IQ_X = RIGHT_X + 260;
   items.forEach((node, i) => { node.pos = [IQ_X, START_Y + i * 70]; });
   const questY = START_Y + items.length * 70 + (items.length ? 30 : 0);
   quests.forEach((node, i) => { node.pos = [IQ_X, questY + i * 110]; });
 
   // Col 3 — Characters, then Notes below
-  const CN_X = IQ_X + 290;
   chars.forEach((node, i) => { node.pos = [CN_X, START_Y + i * 70]; });
   const noteY = START_Y + chars.length * 70 + (chars.length ? 30 : 0);
   notes.forEach((node, i) => { node.pos = [CN_X, noteY + i * 110]; });
@@ -161,7 +174,6 @@ export function autoLayout(): void {
     if (AUTO_TITLES.has(grps[i].title)) grps.splice(i, 1);
   }
 
-  const PAD = 20;
   function makeGroup(title: string, color: string, nodeList: LGraphNode[]): void {
     if (!nodeList.length) return;
     const minX = Math.min(...nodeList.map(n => n.pos[0])) - PAD;
