@@ -154,9 +154,12 @@ export function autoLayout(): void {
   const noteY = START_Y + chars.length * 70 + (chars.length ? 30 : 0);
   notes.forEach((node, i) => { node.pos = [CN_X, noteY + i * 110]; });
 
-  // Auto-groups: remove previously auto-generated groups, then recreate
+  // Auto-groups: remove previously auto-generated groups in-place, then recreate
   const AUTO_TITLES = new Set(['Lokace', 'Eventy', 'Items & Questy', 'Postavy & Notes']);
-  graph._groups = (graph._groups || []).filter(g => !AUTO_TITLES.has(g.title));
+  const grps = graph._groups || [];
+  for (let i = grps.length - 1; i >= 0; i--) {
+    if (AUTO_TITLES.has(grps[i].title)) grps.splice(i, 1);
+  }
 
   const PAD = 20;
   function makeGroup(title: string, color: string, nodeList: LGraphNode[]): void {
