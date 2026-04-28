@@ -4,7 +4,7 @@ Vizuální node-based editor pro návrh struktury [Ren'Py](https://www.renpy.org
 
 Navrhuješ místnosti, propojuješ je exity, přidáváš eventy, itemy a postavy. Editor pak vygeneruje `.rpy` kostru, do které dopíšeš dialogy. Opakovaný export zachová vše, co jsi napsal.
 
-![screenshot placeholder](https://github.com/Bumprdlik/comfy-renpy)
+![Screenshot](docs/screenshot.webp)
 
 ## Funkce
 
