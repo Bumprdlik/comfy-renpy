@@ -45,14 +45,23 @@ export class LocationNode extends LiteGraph.LGraphNode {
     this.setDirtyCanvas(true, true);
   }
 
+  private _refreshLinkType(slotIndex: number, slotType: string): void {
+    const linkIds = this.outputs[slotIndex]?.links;
+    if (!linkIds || !this.graph) return;
+    for (const lid of linkIds) {
+      const link = this.graph.links[lid] as Record<string, unknown> | null;
+      if (link) { link['type'] = slotType; link['color'] = null; }
+    }
+  }
+
   syncExitSlots(): void {
-    // Update in-place to preserve existing LiteGraph connections.
-    // removeOutput() disconnects links, so we avoid it for already-existing slots.
     const exits = this.properties.exits || [];
     const existing = this.outputs?.length ?? 0;
     for (let i = 0; i < Math.min(exits.length, existing); i++) {
+      const slotType = exits[i].bidir ? 'connection-bi' : 'connection';
       this.outputs[i].name = exits[i].name || 'exit';
-      this.outputs[i].type = exits[i].bidir ? 'connection-bi' : 'connection';
+      this.outputs[i].type = slotType;
+      this._refreshLinkType(i, slotType);
     }
     while (this.outputs && this.outputs.length > exits.length) {
       this.removeOutput(this.outputs.length - 1);
@@ -67,8 +76,10 @@ export class LocationNode extends LiteGraph.LGraphNode {
     const exits = this.properties.exits || [];
     if (this.outputs) {
       for (let i = 0; i < Math.min(exits.length, this.outputs.length); i++) {
+        const slotType = exits[i].bidir ? 'connection-bi' : 'connection';
         this.outputs[i].name = exits[i].name || 'exit';
-        this.outputs[i].type = exits[i].bidir ? 'connection-bi' : 'connection';
+        this.outputs[i].type = slotType;
+        this._refreshLinkType(i, slotType);
       }
       while (this.outputs.length > exits.length) this.removeOutput(this.outputs.length - 1);
       for (let i = this.outputs.length; i < exits.length; i++) {

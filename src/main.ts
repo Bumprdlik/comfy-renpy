@@ -36,6 +36,19 @@ LiteGraph.slot_types_default_color = {
   char:          '#33cc88',
 };
 
+// LiteGraph reads cable (link) colors from LGraphCanvas.link_type_colors, not slot_types_default_color
+const _ltColors = (LiteGraph.LGraphCanvas as unknown as { link_type_colors: Record<string, string> }).link_type_colors;
+_ltColors['connection']    = '#5599ee';
+_ltColors['connection-bi'] = '#44ccaa';
+
+// Render bidir connections as a double cable (two parallel lines 5px apart)
+const _origRenderLink = (LiteGraph.LGraphCanvas.prototype as unknown as Record<string, unknown>)['renderLink'] as (...a: unknown[]) => unknown;
+(LiteGraph.LGraphCanvas.prototype as unknown as Record<string, unknown>)['renderLink'] = function(...args: unknown[]) {
+  const link = args[3] as Record<string, unknown> | null;
+  if (link && link['type'] === 'connection-bi' && !args[9]) args[9] = 2;
+  return _origRenderLink.apply(this, args);
+};
+
 const canvasEl  = document.getElementById('graph-canvas') as HTMLCanvasElement;
 const canvasWrap = document.getElementById('canvas-wrap') as HTMLElement;
 const lgCanvas  = new LiteGraph.LGraphCanvas(canvasEl, graph);
