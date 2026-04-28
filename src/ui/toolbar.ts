@@ -121,19 +121,39 @@ export function autoLayout(): void {
   const chars = nodes.filter(n => n.type === 'renpy/character').sort((a, b) => String(a.properties['id'] || '').localeCompare(String(b.properties['id'] || '')));
   const notes = nodes.filter(n => n.type === 'renpy/note');
 
-  const COLS = 3, COL_W = 290, COL_H = 130;
+  const COLS = 3, COL_W = 290;
   const START_X = 60, START_Y = 80;
+  const EVT_H = 75, EVT_OFFSET = 110;
+
+  // Count events per location to calculate dynamic row heights
+  const evtCountByLoc: Record<string, number> = {};
+  for (const evt of evts) {
+    const lid = evt.properties['location_id'] as string;
+    if (lid) evtCountByLoc[lid] = (evtCountByLoc[lid] || 0) + 1;
+  }
+
+  // Each row height = max events in that row × EVT_H + offset + padding
+  const rowCount = Math.ceil(locs.length / COLS);
+  const rowStartY: number[] = new Array(rowCount).fill(0);
+  rowStartY[0] = START_Y;
+  for (let r = 1; r < rowCount; r++) {
+    let maxEvts = 0;
+    for (let i = (r - 1) * COLS; i < Math.min(r * COLS, locs.length); i++) {
+      const lid = locs[i].properties['id'] as string;
+      maxEvts = Math.max(maxEvts, evtCountByLoc[lid] || 0);
+    }
+    rowStartY[r] = rowStartY[r - 1] + Math.max(EVT_OFFSET + maxEvts * EVT_H + 40, 130);
+  }
 
   const locPos: Record<string, [number, number]> = {};
   locs.forEach((node, i) => {
     const col = i % COLS, row = Math.floor(i / COLS);
-    node.pos = [START_X + col * COL_W, START_Y + row * COL_H];
+    node.pos = [START_X + col * COL_W, rowStartY[row]];
     const id = node.properties['id'] as string;
     if (id) locPos[id] = node.pos;
   });
 
   const locRows: Record<string, number> = {};
-  const EVT_H = 75, EVT_OFFSET = 150;
   const unplacedEvts: LGraphNode[] = [];
   evts.forEach(node => {
     const lid = node.properties['location_id'] as string;
