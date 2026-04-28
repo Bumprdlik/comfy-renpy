@@ -185,4 +185,20 @@ export async function openVsCode(): Promise<void> {
   await apiOpenVsCode();
 }
 
+export function toggleCompact(): void {
+  const tb = document.getElementById('toolbar')!;
+  const btn = document.getElementById('compact-toggle')!;
+  const compact = tb.classList.toggle('compact');
+  localStorage.setItem('comfy-compact', compact ? '1' : '0');
+  btn.textContent = compact ? '⊞' : '⊟';
+  btn.title = compact ? 'Klasický mód' : 'Kompaktní mód';
+}
+
+export function initCompactMode(): void {
+  if (localStorage.getItem('comfy-compact') !== '1') return;
+  document.getElementById('toolbar')!.classList.add('compact');
+  const btn = document.getElementById('compact-toggle');
+  if (btn) { btn.textContent = '⊞'; btn.title = 'Klasický mód'; }
+}
+
 export { saveGraph };

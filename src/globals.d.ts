@@ -134,4 +134,5 @@ interface Window {
   onAiProviderChange(value: string): void;
   openGameDir(): Promise<void>;
   openVsCode(): Promise<void>;
+  toggleCompact(): void;
 }
