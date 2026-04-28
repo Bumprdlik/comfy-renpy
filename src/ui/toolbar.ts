@@ -154,6 +154,30 @@ export function autoLayout(): void {
   const noteY = START_Y + chars.length * 70 + (chars.length ? 30 : 0);
   notes.forEach((node, i) => { node.pos = [CN_X, noteY + i * 110]; });
 
+  // Auto-groups: remove previously auto-generated groups, then recreate
+  const AUTO_TITLES = new Set(['Lokace', 'Eventy', 'Items & Questy', 'Postavy & Notes']);
+  graph._groups = (graph._groups || []).filter(g => !AUTO_TITLES.has(g.title));
+
+  const PAD = 20;
+  function makeGroup(title: string, color: string, nodeList: LGraphNode[]): void {
+    if (!nodeList.length) return;
+    const minX = Math.min(...nodeList.map(n => n.pos[0])) - PAD;
+    const minY = Math.min(...nodeList.map(n => n.pos[1])) - PAD - 28;
+    const maxX = Math.max(...nodeList.map(n => n.pos[0] + n.size[0])) + PAD;
+    const maxY = Math.max(...nodeList.map(n => n.pos[1] + n.size[1])) + PAD;
+    const g = new LiteGraph.LGraphGroup(title);
+    g.color = color;
+    g.font_size = 16;
+    g.pos  = [minX, minY];
+    g.size = [maxX - minX, maxY - minY];
+    graph.add(g);
+  }
+
+  makeGroup('Lokace',          '#1e3347', locs);
+  makeGroup('Eventy',          '#3d2010', evts);
+  makeGroup('Items & Questy',  '#2d1a40', [...items, ...quests]);
+  makeGroup('Postavy & Notes', '#0d2d20', [...chars, ...notes]);
+
   graph.setDirtyCanvas(true, true);
   scheduleSave();
 }
