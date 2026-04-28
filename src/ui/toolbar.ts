@@ -173,9 +173,8 @@ export function autoLayout(): void {
     g.font_size = 16;
     g.pos  = [minX, minY];
     g.size = [maxX - minX, maxY - minY];
-    console.log('[autoLayout] group', title, 'pos', g.pos, 'size', g.size, '_groups before:', graph._groups.length);
+    (g as unknown as Record<string, unknown>)['graph'] = graph;
     graph._groups.push(g);
-    console.log('[autoLayout] _groups after:', graph._groups.length);
   }
 
   makeGroup('Lokace',          '#1e3347', locs);
