@@ -10,11 +10,14 @@ Navrhuješ místnosti, propojuješ je exity, přidáváš eventy, itemy a postav
 
 - **Grafický editor** místností a jejich propojení (LiteGraph.js)
 - **6 typů uzlů**: Location, Event, Item, Character, Note, Quest
+- **Obousměrné exity** — kabel ↔ se vykreslí jako dvojitá teal čára, reverzní exit se vygeneruje při exportu
 - **Validace** grafu před exportem (duplicitní ID, chybějící vazby)
 - **Export do .rpy** — generuje stub soubory s `[COMFY-START/END]` markery
 - **Preview** — náhled vygenerovaného `.rpy` bez zápisu na disk
 - **Round-trip bezpečný** — re-export přepíše jen strukturu, tvůj dialog zůstane
 - **Scan** — zobrazí stav každého uzlu (written / stub / missing / drift)
+- **Auto-layout** — rozmístí uzly do sekcí a automaticky vytvoří pojmenované skupiny
+- **Compact mode** — přepínání toolbaru mezi ikonkami a textovými popisky (⊟/⊞)
 - **Auto-save** grafu každé 2 sekundy
 - **TypeScript + Vite** frontend s plnou typovou kontrolou
 
@@ -122,7 +125,10 @@ Tlačítko **Scan** zkontroluje stav každého uzlu a zobrazí barevný badge:
 | `I` | přidat Item uzel |
 | `C` | přidat Character uzel |
 | `N` | přidat Note uzel |
-| `Pravý klik` na canvas | kontextové menu |
+| `Q` | přidat Quest uzel |
+| `G` | přidat skupinu (LGraphGroup) |
+| `Ctrl+F` | focusovat vyhledávací pole |
+| `Pravý klik` na canvas | kontextové menu (Add Node) |
 | `Del` / `Backspace` | smazat vybraný uzel nebo hranu |
 | `Ctrl+Z` | undo |
 | `Ctrl+C` / `V` | kopírovat / vložit uzly |

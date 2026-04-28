@@ -68,7 +68,31 @@ npm start      # Jen Express :3001 (servíruje dist/)
 
 ### Location exits (dynamické porty)
 
-`syncExitSlots()` odstraní všechny výstupní sloty a znovu je přidá z `properties.exits`. Volá se vždy po editaci exitů v properties panelu a v `onConfigure()` (při načítání grafu ze souboru). Vstupní sloty (blank, bezejmenné) se spravují přes `_ensureOneBlankInput()` — vždy jeden volný slot navíc.
+`syncExitSlots()` aktualizuje výstupní sloty in-place (zachovává spojení) z `properties.exits`. Volá se vždy po editaci exitů v properties panelu a v `onConfigure()` (při načítání grafu ze souboru). Vstupní sloty (blank, bezejmenné) se spravují přes `_ensureOneBlankInput()` — vždy jeden volný slot navíc.
+
+`removeExitAt(j)` správně odstraní konkrétní exit ze středu pole — odpojí slot j, přesune `origin_slot` v `graph.links` pro sloty j+1→j, odstraní poslední slot a splajsnuje `exits[]`.
+
+### Obousměrné exity (bidir)
+
+Exit lze označit jako obousměrný přes ↔ tlačítko v properties panelu. Bidir exit:
+- Má `type = 'connection-bi'` (teal barva, dvojitý kabel = dvě paralelní čáry)
+- Při aktivaci automaticky odstraní zpětné jednosměrné spojení z cílového uzlu
+- Po reload grafu se barva kabelů obnoví z `link.type` (v `onConfigure()`)
+- `returnName` property určuje název reverz-exitu generovaného při exportu
+
+Kabel barvy jsou registrovány v `LGraphCanvas.link_type_colors` (ne v `slot_types_default_color` — tu LiteGraph pro kabely nepoužívá). Dvojitý kabel = monkey-patch `LGraphCanvas.prototype.renderLink` s `num_sublines=2`.
+
+### Toolbar compact mode
+
+Toolbar podporuje dvě zobrazení přepínatelná tlačítkem ⊟/⊞:
+- **Klasický mód**: textové popisky, ikonky skryté
+- **Kompaktní mód**: jen emoji ikonky s `title` tooltipem, texty skryté
+
+Preference se ukládá do `localStorage['comfy-compact']`. `initCompactMode()` obnoví stav při startu.
+
+### Auto-layout a skupiny
+
+`autoLayout()` rozmístí uzly do 4 sloupců (Lokace, Eventy, Items/Questy, Postavy/Notes) a automaticky vytvoří pojmenované `LGraphGroup` kolem každé sekce. Skupiny s názvy "Lokace", "Eventy", "Items & Questy", "Postavy & Notes" jsou při každém spuštění auto-layoutu odstraněny a znovu vytvořeny — uživatelské skupiny s jiným názvem zůstanou netknuty.
 
 ## Export .rpy a marker systém
 
@@ -106,9 +130,9 @@ Pokud `gameDir` není nastaven, exportuje do `{projectDir}/output/`.
 - **written** — soubor má dialogové řádky (regex na `"`, `jump`, `menu`, `show`, atd.)
 - **drift** — soubor existuje bez COMFY markeru, nebo soubor bez uzlu v grafu (orphan)
 
-## Co NEDĚLAT
+## Příkladový graf
 
-- **Příkladový graf**: `public/example-graph.json` — načte se tlačítkem "⬡ Příklad" v toolbaru (přepíše aktuální graf po potvrzení)
+`public/example-graph.json` — načte se tlačítkem "⬡ Příklad" v toolbaru (přepíše aktuální graf po potvrzení).
 
 ## Co NEDĚLAT
 
