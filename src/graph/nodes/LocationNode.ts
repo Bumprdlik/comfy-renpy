@@ -54,6 +54,48 @@ export class LocationNode extends LiteGraph.LGraphNode {
     }
   }
 
+  removeExitAt(j: number): void {
+    if (!this.outputs || j < 0 || j >= this.outputs.length) return;
+    const g = (this.graph as unknown as { links: Record<number, Record<string, unknown>> } | null)?.links;
+
+    // Disconnect all links currently at slot j
+    const toRemove = [...(this.outputs[j]?.links ?? [])];
+    for (const lid of toRemove) {
+      const link = g?.[lid];
+      if (!link) continue;
+      const tgtNode = this.graph?.getNodeById(link['target_id'] as number);
+      const ts = link['target_slot'] as number;
+      if (tgtNode?.inputs?.[ts]) tgtNode.inputs[ts].link = null;
+      const idx = this.outputs[j].links!.indexOf(lid);
+      if (idx >= 0) this.outputs[j].links!.splice(idx, 1);
+      if (g) delete g[lid];
+    }
+
+    // Shift connections from slots k+1 → k for all slots after j
+    for (let k = j; k < this.outputs.length - 1; k++) {
+      const nextLinks = [...(this.outputs[k + 1]?.links ?? [])];
+      this.outputs[k].links = nextLinks;
+      for (const lid of nextLinks) {
+        if (g?.[lid]) g[lid]['origin_slot'] = k;
+      }
+      if (this.outputs[k + 1].links) this.outputs[k + 1].links = [];
+    }
+
+    // Remove the last output (now empty after shift)
+    this.removeOutput(this.outputs.length - 1);
+
+    // Remove exit from properties and update remaining slot names/types
+    this.properties.exits.splice(j, 1);
+    const exits = this.properties.exits;
+    for (let i = 0; i < exits.length && this.outputs && i < this.outputs.length; i++) {
+      const slotType = exits[i].bidir ? 'connection-bi' : 'connection';
+      this.outputs[i].name = exits[i].name || 'exit';
+      this.outputs[i].type = slotType;
+      this._refreshLinkType(i, slotType);
+    }
+    if (this.size) this.size[0] = Math.max(this.size[0], 200);
+  }
+
   syncExitSlots(): void {
     const exits = this.properties.exits || [];
     const existing = this.outputs?.length ?? 0;

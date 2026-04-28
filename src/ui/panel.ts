@@ -172,10 +172,37 @@ export function toggleExitBidir(i: number): void {
   const locNode = node as unknown as LocationNode;
   const exit = locNode.properties.exits[i];
   exit.bidir = !exit.bidir;
+  if (exit.bidir) removeReverseExit(locNode, i);
   locNode.syncExitSlots();
   locNode.setDirtyCanvas(true, true);
   renderPanel(locNode);
   scheduleSave();
+}
+
+function removeReverseExit(locNode: LocationNode, outSlot: number): void {
+  const linkIds = locNode.outputs[outSlot]?.links;
+  if (!linkIds || linkIds.length === 0 || !locNode.graph) return;
+  const g = (locNode.graph as unknown as { links: Record<number, Record<string, unknown>> }).links;
+  for (const lid of linkIds) {
+    const link = g[lid];
+    if (!link) continue;
+    const targetNode = locNode.graph.getNodeById(link['target_id'] as number);
+    if (!targetNode || targetNode.type !== 'renpy/location') continue;
+    const targetLoc = targetNode as unknown as LocationNode;
+    if (!targetLoc.outputs) continue;
+    for (let j = 0; j < targetLoc.outputs.length; j++) {
+      const outLinks = targetLoc.outputs[j]?.links;
+      if (!outLinks) continue;
+      for (const outLid of outLinks) {
+        const outLink = g[outLid];
+        if (outLink && (outLink['target_id'] as number) === locNode.id && !targetLoc.properties.exits[j]?.bidir) {
+          targetLoc.removeExitAt(j);
+          targetLoc.setDirtyCanvas(true, true);
+          return;
+        }
+      }
+    }
+  }
 }
 
 export function updateExitReturn(i: number, value: string): void {
@@ -200,8 +227,7 @@ export function removeExit(i: number): void {
   const node = getSelectedNode();
   if (!node || node.type !== 'renpy/location') return;
   const locNode = node as unknown as LocationNode;
-  locNode.properties.exits.splice(i, 1);
-  locNode.syncExitSlots();
+  locNode.removeExitAt(i);
   locNode.setDirtyCanvas(true, true);
   renderPanel(locNode);
   scheduleSave();
