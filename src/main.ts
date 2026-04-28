@@ -36,6 +36,14 @@ LiteGraph.slot_types_default_color = {
   char:          '#33cc88',
 };
 
+// Remove all built-in LiteGraph node types — only renpy/* should appear in the context menu
+for (const type of Object.keys(LiteGraph.registered_node_types)) {
+  if (!type.startsWith('renpy/')) delete LiteGraph.registered_node_types[type];
+}
+for (const key of Object.keys(LiteGraph.searchbox_extras)) {
+  delete LiteGraph.searchbox_extras[key];
+}
+
 // LiteGraph reads cable (link) colors from LGraphCanvas.link_type_colors, not slot_types_default_color
 const _ltColors = (LiteGraph.LGraphCanvas as unknown as { link_type_colors: Record<string, string> }).link_type_colors;
 _ltColors['connection']    = '#5599ee';
