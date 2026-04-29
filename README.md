@@ -11,6 +11,9 @@ Navrhuješ místnosti, propojuješ je exity, přidáváš eventy, itemy a postav
 - **Grafický editor** místností a jejich propojení (LiteGraph.js)
 - **6 typů uzlů**: Location, Event, Item, Character, Note, Quest
 - **Obousměrné exity** — kabel ↔ se vykreslí jako dvojitá teal čára, reverzní exit se vygeneruje při exportu
+- **Inventář** — Item uzly generují pickup labely, lokace dostanou volby "Sebrat" v menu, `comfy_init.rpy` obsahuje `comfy_has()` / `comfy_give()` helpery
+- **Hratelný skeleton** — první export vyplní popis lokace jako narátorskou řádku, hra je okamžitě hratelná
+- **AI → soubor** — vygenerovaný dialog lze zapsat přímo do .rpy tlačítkem "💾 Zapsat do souboru"
 - **Validace** grafu před exportem (duplicitní ID, chybějící vazby)
 - **Export do .rpy** — generuje stub soubory s `[COMFY-START/END]` markery
 - **Preview** — náhled vygenerovaného `.rpy` bez zápisu na disk

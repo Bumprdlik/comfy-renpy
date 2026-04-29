@@ -119,8 +119,22 @@ label location_kitchen:
 
 - `{gameDir}/locations/{id}.rpy` — Location uzly
 - `{gameDir}/events/{id}.rpy` — Event uzly
+- `{gameDir}/items/{id}.rpy` — Item uzly (pickup labely s `comfy_give()`)
+- `{gameDir}/quests/{id}.rpy` — Quest uzly
+- `{gameDir}/comfy_init.rpy` — inventář helpers + Character `define` řádky
 
 Pokud `gameDir` není nastaven, exportuje do `{projectDir}/output/`.
+
+### Playable skeleton & Inventory systém
+
+Export generuje hratelnou hru od prvního spuštění:
+- **kind=body** marker (mezi header a exits/footer) — první export vyplní popis lokace nebo placeholder dialog. Re-export body **nikdy nepřepíše** (je to lidský/AI prostor).
+- **comfy_init.rpy** — `default comfy_inventory = []`, `comfy_has(id)`, `comfy_give(id)`, `comfy_quest_stage/advance()`, plus `define` pro každou postavu.
+- **Item pickup** — v exits menu lokace se přidají volby `"Sebrat: {name}" if not comfy_has("{id}"):` pro každý item s `location_id` shodujícím se s lokací.
+
+### AI write-to-file
+
+`POST /api/write-dialogue` — přijme `{ lgNodeId, content, graphData }`, najde soubor uzlu a zapíše `content` do `kind=body` markeru (smart insert: pokud body marker neexistuje, vloží ho před exits/footer). Frontend: tlačítko "💾 Zapsat do souboru" v generate modalu (zobrazí se po úspěšném AI generování).
 
 ## Scan
 

@@ -145,15 +145,15 @@
             <div class="help-step-body">
               <strong>Přidej eventy, itemy a postavy</strong>
               <p><strong>+ Event</strong> — scéna nebo událost vázaná na lokaci.<br>
-              <strong>+ Item</strong> — předmět ve hře.<br>
-              <strong>+ Character</strong> — postava s hlasem a sprite.</p>
+              <strong>+ Item</strong> — předmět ve hře. Každý item dostane pickup label a automaticky se přidá do menu lokace, kde se nachází.<br>
+              <strong>+ Character</strong> — postava; při exportu se vygeneruje <code>define</code> řádek do <code>comfy_init.rpy</code>.</p>
             </div>
           </li>
           <li>
             <div class="help-step-num">4</div>
             <div class="help-step-body">
-              <strong>Exportuj a piš dialogy</strong>
-              <p>Tlačítko <strong>Export .rpy</strong> vygeneruje kostry souborů. Dialogy piš v IDE mezi markery <code># [COMFY-END]</code> a <code># [COMFY-START …]</code> — tyto oblasti Comfy-Renpy nikdy nepřepíše.</p>
+              <strong>Exportuj — hra je okamžitě hratelná</strong>
+              <p>Tlačítko <strong>Export .rpy</strong> vygeneruje kostry souborů. První export vyplní popis lokace a placeholder dialog — hru lze ihned spustit a procházet. Dialogy piš v IDE v sekci <code>kind=body</code> nebo je vygeneruj pomocí AI (tlačítko ✨ v properties panelu).</p>
             </div>
           </li>
           <li>
@@ -183,7 +183,7 @@
             <p>Reprezentuje místnost nebo oblast ve hře. Uzly Location se propojují hranami, které tvoří mapu hry.</p>
             <div class="prop-row"><span class="prop-name">id</span><span class="prop-desc">Unikátní identifikátor lokace, používá se v <code>jump location_{id}</code>. Jen písmena, čísla, podtržítko.</span></div>
             <div class="prop-row"><span class="prop-name">label</span><span class="prop-desc">Zobrazovaný název místnosti (zobrazí se hráči v menu).</span></div>
-            <div class="prop-row"><span class="prop-name">description</span><span class="prop-desc">Volný popis pro tvůrce — exportuje se jako komentář do .rpy.</span></div>
+            <div class="prop-row"><span class="prop-name">description</span><span class="prop-desc">Popis lokace — při prvním exportu se vloží jako narátorská řádka do těla souboru.</span></div>
             <div class="prop-row"><span class="prop-name">exits</span><span class="prop-desc">Seznam výstupů ve formátu <em>název:cíl_id</em>, např. <code>north:hall</code>. Každý exit vytvoří výstupní port uzlu.</span></div>
           </div>
         </div>
@@ -211,10 +211,11 @@
             <span class="nc-dot" style="background:#8e44ad"></span> Item
           </div>
           <div class="node-card-body">
-            <p>Předmět ve hře. Slouží jako dokumentace — generuje se komentář/záznam do exportu.</p>
-            <div class="prop-row"><span class="prop-name">id</span><span class="prop-desc">Unikátní identifikátor itemu.</span></div>
-            <div class="prop-row"><span class="prop-name">name</span><span class="prop-desc">Zobrazovaný název předmětu.</span></div>
-            <div class="prop-row"><span class="prop-name">description</span><span class="prop-desc">Popis předmětu pro tvůrce i hráče.</span></div>
+            <p>Předmět ve hře. Exportuje se jako pickup label do <code>items/{id}.rpy</code>. V menu lokace (kde je přiřazen) se automaticky přidá volba <em>Sebrat: {název}</em> hlídaná funkcí <code>comfy_has()</code>.</p>
+            <div class="prop-row"><span class="prop-name">id</span><span class="prop-desc">Unikátní identifikátor itemu — použije se jako <code>comfy_give("{id}")</code>.</span></div>
+            <div class="prop-row"><span class="prop-name">name</span><span class="prop-desc">Zobrazovaný název v menu lokace.</span></div>
+            <div class="prop-row"><span class="prop-name">description</span><span class="prop-desc">Popis předmětu — vloží se jako dialog při sebrání.</span></div>
+            <div class="prop-row"><span class="prop-name">location_id</span><span class="prop-desc">ID lokace, kde lze předmět sebrat.</span></div>
           </div>
         </div>
 
@@ -223,7 +224,7 @@
             <span class="nc-dot" style="background:#16a085"></span> Character
           </div>
           <div class="node-card-body">
-            <p>Postava ve hře. Data jsou podkladem pro definici <code>Character()</code> v Ren'Py.</p>
+            <p>Postava ve hře. Při exportu se automaticky vygeneruje <code>define {id} = Character("{name}")</code> do <code>comfy_init.rpy</code>.</p>
             <div class="prop-row"><span class="prop-name">id</span><span class="prop-desc">Unikátní identifikátor postavy — použije se jako název proměnné v Ren'Py.</span></div>
             <div class="prop-row"><span class="prop-name">name</span><span class="prop-desc">Jméno postavy zobrazované v dialogovém boxu.</span></div>
             <div class="prop-row"><span class="prop-name">voice</span><span class="prop-desc">Hlasový tag pro voice acting (<code>voice_tag=</code>).</span></div>
@@ -249,28 +250,39 @@
       <!-- TAB: Export & Scan -->
       <div class="help-page" id="help-page-export">
         <h3>Export .rpy</h3>
-        <p>Tlačítko <strong>Export .rpy</strong> projde všechny uzly a pro každou Location/Event vygeneruje (nebo aktualizuje) <code>.rpy</code> soubor.</p>
+        <p>Tlačítko <strong>Export .rpy</strong> projde všechny uzly a vygeneruje (nebo aktualizuje) <code>.rpy</code> soubory. Hra je po prvním exportu okamžitě hratelná.</p>
         <p>Soubory se ukládají do:</p>
         <ul style="font-size:12px;color:#777;line-height:1.8;padding-left:18px;margin-bottom:10px">
-          <li><code>{gameDir}/locations/{id}.rpy</code> — pro Location uzly</li>
-          <li><code>{gameDir}/events/{id}.rpy</code> — pro Event uzly</li>
+          <li><code>{gameDir}/locations/{id}.rpy</code> — Location uzly</li>
+          <li><code>{gameDir}/events/{id}.rpy</code> — Event uzly</li>
+          <li><code>{gameDir}/items/{id}.rpy</code> — Item uzly (pickup labely)</li>
+          <li><code>{gameDir}/quests/{id}.rpy</code> — Quest uzly</li>
+          <li><code>{gameDir}/comfy_init.rpy</code> — inventář + Character define řádky</li>
         </ul>
         <p>Pokud <code>gameDir</code> není nastaven, exportuje do <code>output/</code> vedle serveru.</p>
 
         <h3>Marker systém</h3>
-        <p>Každý generovaný soubor obsahuje bloky ohraničené markery:</p>
+        <p>Každý soubor má tři sekce ohraničené markery:</p>
         <pre style="background:#1e1e1e;border:1px solid #333;border-radius:4px;padding:10px;font-size:11px;color:#aaa;line-height:1.6;overflow-x:auto"># [COMFY-START id=kitchen kind=header]
 label location_kitchen:
 # [COMFY-END]
 
-    pass  &lt;-- sem piš obsah lokace
+# [COMFY-START id=kitchen kind=body]
+    "V kuchyni voní čerstvá káva."  &lt;-- tvůj dialog / AI obsah
+# [COMFY-END]
 
 # [COMFY-START id=kitchen kind=exits]
     menu:
         "north":
             jump location_hall
+        "Sebrat: Klíč" if not comfy_has("klic"):
+            call item_klic
+    jump location_kitchen
 # [COMFY-END]</pre>
-        <p>Obsah <strong>mimo markery</strong> Comfy-Renpy nikdy nepřepíše — dialogy a logiku piš tam.</p>
+        <p>Sekce <strong>body</strong> Comfy-Renpy při re-exportu <strong>nikdy nepřepíše</strong> — piš nebo generuj AI obsah tam. Sekce <strong>header</strong> a <strong>exits</strong> se aktualizují automaticky.</p>
+
+        <h3>AI generování dialogů</h3>
+        <p>V properties panelu eventu nebo lokace klikni na <strong>✨ Generovat</strong>. AI vytvoří dialog podle popisu uzlu, postav a itemů v lokaci. Tlačítkem <strong>💾 Zapsat do souboru</strong> se dialog zapíše přímo do sekce <code>kind=body</code> — bez nutnosti kopírovat do IDE.</p>
 
         <h3>Scan — stavy uzlů</h3>
         <div class="prop-row"><span class="prop-name"><span class="dot" style="background:#2ecc71;margin-right:4px"></span>written</span><span class="prop-desc">Soubor existuje a má dialogové řádky (uvozovky, <code>jump</code>, <code>show</code>, <code>menu</code>…).</span></div>
@@ -297,6 +309,9 @@ label location_kitchen:
         <div class="shortcut-row"><kbd>I</kbd><span>Přidat Item uzel</span></div>
         <div class="shortcut-row"><kbd>C</kbd><span>Přidat Character uzel</span></div>
         <div class="shortcut-row"><kbd>N</kbd><span>Přidat Note uzel</span></div>
+        <div class="shortcut-row"><kbd>Q</kbd><span>Přidat Quest uzel</span></div>
+        <div class="shortcut-row"><kbd>G</kbd><span>Přidat skupinu (LGraphGroup)</span></div>
+        <div class="shortcut-row"><kbd>Ctrl + F</kbd><span>Vyhledat uzel</span></div>
 
         <h3>Toolbar</h3>
         <div class="shortcut-row"><kbd>+ Location</kbd><span>Přidat nový Location uzel</span></div>
