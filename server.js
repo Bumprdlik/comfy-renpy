@@ -180,12 +180,18 @@ app.post('/api/export-rpy', (req, res) => {
   for (const n of (graphData.nodes || [])) nodeById[n.id] = n;
 
   // Map location_id → lists of items and characters present there
-  const locItems = {}, locChars = {};
+  const locItems = {}, locChars = {}, locItemNodes = {}, locCharNodes = {};
   for (const n of (graphData.nodes || [])) {
     const lid = n.properties && n.properties.location_id;
     if (!lid) continue;
-    if (n.type === 'renpy/item')      (locItems[lid] = locItems[lid] || []).push(n.properties.name || n.properties.id);
-    if (n.type === 'renpy/character') (locChars[lid] = locChars[lid] || []).push(n.properties.name || n.properties.id);
+    if (n.type === 'renpy/item') {
+      (locItems[lid]     = locItems[lid]     || []).push(n.properties.name || n.properties.id);
+      (locItemNodes[lid] = locItemNodes[lid] || []).push(n.properties);
+    }
+    if (n.type === 'renpy/character') {
+      (locChars[lid]     = locChars[lid]     || []).push(n.properties.name || n.properties.id);
+      (locCharNodes[lid] = locCharNodes[lid] || []).push(n.properties);
+    }
   }
 
   // Build exit connection map: {nodeId: {outputSlot: targetLocationId}}
@@ -242,7 +248,9 @@ app.post('/api/export-rpy', (req, res) => {
 
     // exits region — navigation menu at the bottom of the location
     let exitsLines = [];
-    if (allExits.length === 0) {
+    const itemsHere = locItemNodes[locId] || [];
+    const hasAnyExit = allExits.length > 0 || itemsHere.length > 0;
+    if (!hasAnyExit) {
       exitsLines = ['    return'];
     } else {
       exitsLines.push('    menu:');
@@ -255,8 +263,18 @@ app.post('/api/export-rpy', (req, res) => {
           exitsLines.push(`            pass`);
         }
       }
+      for (const item of itemsHere) {
+        if (!item.id) continue;
+        const pickupName = (item.name || item.id).replace(/"/g, '\\"');
+        exitsLines.push(`        "Sebrat: ${pickupName}" if not comfy_has("${item.id}"):`);
+        exitsLines.push(`            call item_${item.id}`);
+      }
       exitsLines.push(`    jump ${labelName}`);
     }
+
+    // body region — description as narrator line (only written on first export)
+    const desc = (p.description || '').trim().replace(/"/g, '\\"');
+    const bodyContent = desc ? `    "${desc}"` : '    pass  # obsah lokace';
 
     try {
       const existing = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : null;
@@ -265,7 +283,7 @@ app.post('/api/export-rpy', (req, res) => {
         content = [
           markerBlock(locId, 'header', headerContent),
           '',
-          '    pass  # obsah lokace',
+          markerBlock(locId, 'body', bodyContent),
           '',
           markerBlock(locId, 'exits', exitsLines.join('\n')),
           '',
@@ -273,6 +291,7 @@ app.post('/api/export-rpy', (req, res) => {
         created.push(`locations/${locId}.rpy`);
       } else {
         content = updateMarkerRegion(existing, locId, 'header', headerContent);
+        // body is human/AI territory — never overwrite on re-export
         content = updateMarkerRegion(content,  locId, 'exits',  exitsLines.join('\n'));
         updated.push(`locations/${locId}.rpy`);
       }
@@ -303,6 +322,10 @@ app.post('/api/export-rpy', (req, res) => {
       ? `    jump location_${p.location_id}`
       : '    return';
 
+    // body: placeholder trigger label (only on first export)
+    const trigLabel = (p.trigger_label || p.trigger || evtId).replace(/"/g, '\\"');
+    const evtBodyContent = `    "… ${trigLabel} …"  # nahraď vlastním dialogem`;
+
     try {
       const existing = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : null;
       let content;
@@ -310,7 +333,7 @@ app.post('/api/export-rpy', (req, res) => {
         content = [
           markerBlock(evtId, 'header', headerLines.join('\n')),
           '',
-          '    pass  # dialog eventu',
+          markerBlock(evtId, 'body', evtBodyContent),
           '',
           markerBlock(evtId, 'footer', footerContent),
           '',
@@ -318,6 +341,7 @@ app.post('/api/export-rpy', (req, res) => {
         created.push(`events/${evtId}.rpy`);
       } else {
         content = updateMarkerRegion(existing, evtId, 'header', headerLines.join('\n'));
+        // body is human/AI territory — never overwrite on re-export
         content = updateMarkerRegion(content,  evtId, 'footer', footerContent);
         updated.push(`events/${evtId}.rpy`);
       }
@@ -368,9 +392,152 @@ app.post('/api/export-rpy', (req, res) => {
     }
   }
 
+  // ── Item nodes ──
+  const itemDir = path.join(gameDir, 'items');
+  for (const node of Object.values(nodeById)) {
+    if (node.type !== 'renpy/item') continue;
+    const p = node.properties;
+    if (!p.id) { errors.push('Item bez ID přeskočen'); continue; }
+    const itemId  = p.id;
+    const filePath = path.join(itemDir, `${itemId}.rpy`);
+    try { fs.mkdirSync(itemDir, { recursive: true }); } catch (_e) {}
+
+    const itemName = (p.name || itemId).replace(/"/g, '\\"');
+    const itemDesc = (p.description || '').trim().replace(/"/g, '\\"');
+    const itemHeaderContent = `label item_${itemId}:`;
+    const itemBodyLines = [
+      `    "Sebral jsi: ${itemName}."`,
+      ...(itemDesc ? [`    "${itemDesc}"`] : []),
+      `    $ comfy_give("${itemId}")`,
+    ];
+    const itemFooterContent = '    return';
+
+    try {
+      const existing = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : null;
+      let content;
+      if (!existing) {
+        content = [
+          markerBlock(itemId, 'header', itemHeaderContent),
+          '',
+          markerBlock(itemId, 'body', itemBodyLines.join('\n')),
+          '',
+          markerBlock(itemId, 'footer', itemFooterContent),
+          '',
+        ].join('\n');
+        created.push(`items/${itemId}.rpy`);
+      } else {
+        content = updateMarkerRegion(existing, itemId, 'header', itemHeaderContent);
+        content = updateMarkerRegion(content,  itemId, 'footer', itemFooterContent);
+        updated.push(`items/${itemId}.rpy`);
+      }
+      fs.writeFileSync(filePath, content, 'utf8');
+    } catch (e) {
+      errors.push(`items/${itemId}.rpy: ${e.message}`);
+    }
+  }
+
+  // ── comfy_init.rpy — inventory helpers + character defines ──
+  const initFile = path.join(gameDir, 'comfy_init.rpy');
+  const allChars = Object.values(nodeById).filter(n => n.type === 'renpy/character').map(n => n.properties);
+  const initContent = [
+    'default comfy_inventory = []',
+    'default comfy_quests = {}',
+    '',
+    'init python:',
+    '    def comfy_has(item_id):',
+    '        return item_id in comfy_inventory',
+    '',
+    '    def comfy_give(item_id):',
+    '        if item_id not in comfy_inventory:',
+    '            comfy_inventory.append(item_id)',
+    '            return True',
+    '        return False',
+    '',
+    '    def comfy_quest_stage(quest_id):',
+    '        return comfy_quests.get(quest_id, -1)',
+    '',
+    '    def comfy_quest_advance(quest_id):',
+    '        comfy_quests[quest_id] = comfy_quests.get(quest_id, -1) + 1',
+  ].join('\n');
+
+  const charLines = allChars.filter(c => c.id).map(c => {
+    const name = (c.name || c.id).replace(/"/g, '\\"');
+    const extra = c.sprite_id ? `, image="${c.sprite_id}"` : '';
+    return `define ${c.id} = Character("${name}"${extra})`;
+  });
+  const charsContent = charLines.length ? charLines.join('\n') : '# Žádné postavy';
+
+  try {
+    const existingInit = fs.existsSync(initFile) ? fs.readFileSync(initFile, 'utf8') : null;
+    let initFileContent;
+    if (!existingInit) {
+      initFileContent = [
+        markerBlock('__comfy__', 'init', initContent),
+        '',
+        markerBlock('__comfy__', 'characters', charsContent),
+        '',
+      ].join('\n');
+      created.push('comfy_init.rpy');
+    } else {
+      initFileContent = updateMarkerRegion(existingInit, '__comfy__', 'init', initContent);
+      initFileContent = updateMarkerRegion(initFileContent, '__comfy__', 'characters', charsContent);
+      updated.push('comfy_init.rpy');
+    }
+    fs.writeFileSync(initFile, initFileContent, 'utf8');
+  } catch (e) {
+    errors.push(`comfy_init.rpy: ${e.message}`);
+  }
+
   const note = null;
 
   res.json({ ok: true, created, updated, errors, note });
+});
+
+// POST /api/write-dialogue — write AI-generated content into kind=body marker
+app.post('/api/write-dialogue', (req, res) => {
+  const { lgNodeId, content, graphData } = req.body;
+  const gameDir = config.gameDir || projectDir;
+
+  const nodeById = {};
+  for (const n of (graphData.nodes || [])) nodeById[n.id] = n;
+  const node = nodeById[lgNodeId];
+  if (!node) return res.status(404).json({ ok: false, error: 'Uzel nenalezen' });
+
+  const p = node.properties || {};
+  const id = p.id;
+  if (!id) return res.status(400).json({ ok: false, error: 'Uzel nemá ID' });
+
+  let filePath;
+  if (node.type === 'renpy/location')   filePath = path.join(gameDir, 'locations', `${id}.rpy`);
+  else if (node.type === 'renpy/event') filePath = path.join(gameDir, 'events',    `${id}.rpy`);
+  else return res.status(400).json({ ok: false, error: 'Zápis podporován jen pro Location a Event uzly' });
+
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ ok: false, error: `Soubor neexistuje. Nejdřív proveď Export .rpy.` });
+  }
+
+  const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const existing = fs.readFileSync(filePath, 'utf8');
+  const bodyBlock = markerBlock(id, 'body', content);
+  const bodyRe = new RegExp(`# \\[COMFY-START id=${esc(id)} kind=body\\][\\s\\S]*?# \\[COMFY-END\\]`);
+
+  let updated;
+  if (bodyRe.test(existing)) {
+    updated = existing.replace(bodyRe, bodyBlock);
+  } else {
+    // Insert before exits or footer marker if no body marker exists yet
+    const anchorRe = new RegExp(`(# \\[COMFY-START id=${esc(id)} kind=(?:exits|footer)\\])`);
+    updated = anchorRe.test(existing)
+      ? existing.replace(anchorRe, bodyBlock + '\n\n$1')
+      : existing.trimEnd() + '\n\n' + bodyBlock + '\n';
+  }
+
+  try {
+    fs.writeFileSync(filePath, updated, 'utf8');
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
 });
 
 // GET /api/scan
@@ -379,6 +546,7 @@ app.get('/api/scan', (req, res) => {
   const locDir   = path.join(gameDir, 'locations');
   const evtDir   = path.join(gameDir, 'events');
   const questDir = path.join(gameDir, 'quests');
+  const itemDir  = path.join(gameDir, 'items');
 
   const graphData = (() => {
     const p = graphFile();
@@ -400,6 +568,7 @@ app.get('/api/scan', (req, res) => {
     if (node.type === 'renpy/location')   filePath = path.join(locDir,   `${id}.rpy`);
     else if (node.type === 'renpy/event') filePath = path.join(evtDir,   `${id}.rpy`);
     else if (node.type === 'renpy/quest') filePath = path.join(questDir, `${id}.rpy`);
+    else if (node.type === 'renpy/item')  filePath = path.join(itemDir,  `${id}.rpy`);
     else continue;
 
     if (!fs.existsSync(filePath)) {
@@ -432,7 +601,7 @@ app.get('/api/scan', (req, res) => {
   const knownIds = new Set(
     (graphData.nodes || []).map(n => n.properties && n.properties.id).filter(Boolean)
   );
-  for (const dir of [locDir, evtDir, questDir]) {
+  for (const dir of [locDir, evtDir, questDir, itemDir]) {
     if (!fs.existsSync(dir)) continue;
     for (const file of fs.readdirSync(dir)) {
       if (!file.endsWith('.rpy')) continue;

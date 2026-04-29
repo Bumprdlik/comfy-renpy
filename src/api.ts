@@ -88,6 +88,15 @@ export async function apiOpenFile(id: string, nodeType: string): Promise<{ ok?: 
   return r.json() as Promise<{ ok?: boolean; error?: string }>;
 }
 
+export async function apiWriteDialogue(lgNodeId: number, content: string, graphData: Record<string, unknown>): Promise<{ ok: boolean; error?: string }> {
+  const r = await fetch('/api/write-dialogue', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ lgNodeId, content, graphData }),
+  });
+  return r.json() as Promise<{ ok: boolean; error?: string }>;
+}
+
 export async function apiGenerateDialogue(prompt: string): Promise<{ prompt?: string; result?: string; hasKey: boolean; error?: string }> {
   const r = await fetch('/api/generate-dialogue', {
     method: 'POST',

@@ -130,6 +130,7 @@ interface Window {
   copyGenPrompt(): Promise<void>;
   runGenerate(): Promise<void>;
   copyGenResult(): Promise<void>;
+  writeGenResult(): Promise<void>;
   clearApiKey(): void;
   onAiProviderChange(value: string): void;
   openGameDir(): Promise<void>;

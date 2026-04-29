@@ -1,5 +1,5 @@
 import { graph } from '../../graph/state';
-import { apiGenerateDialogue } from '../../api';
+import { apiGenerateDialogue, apiWriteDialogue } from '../../api';
 
 const overlay    = document.getElementById('gen-overlay')   as HTMLElement;
 const titleEl    = document.getElementById('gen-title')     as HTMLElement;
@@ -9,7 +9,8 @@ const statusEl   = document.getElementById('gen-status')    as HTMLElement;
 const genBtn     = document.getElementById('gen-api-btn')   as HTMLButtonElement;
 const noKeyHint  = document.getElementById('gen-no-key')    as HTMLElement;
 
-let _prompt = '';
+let _prompt  = '';
+let _nodeId  = -1;
 
 function buildPrompt(nodeId: number): string {
   const node = graph.getNodeById(nodeId);
@@ -72,6 +73,7 @@ function buildPrompt(nodeId: number): string {
 export function openGenerate(nodeId: number, hasKey: boolean): void {
   const node = graph.getNodeById(nodeId);
   if (!node) return;
+  _nodeId = nodeId;
   _prompt = buildPrompt(nodeId);
 
   titleEl.textContent = `✨ Generovat dialog — ${node.properties['id'] ?? nodeId}`;
@@ -81,6 +83,8 @@ export function openGenerate(nodeId: number, hasKey: boolean): void {
   statusEl.textContent = '';
   genBtn.hidden        = !hasKey;
   noKeyHint.hidden     = hasKey;
+  const writeBtn = document.getElementById('gen-write-btn') as HTMLButtonElement | null;
+  if (writeBtn) writeBtn.hidden = true;
 
   overlay.classList.add('open');
 }
@@ -115,12 +119,34 @@ export async function runGenerate(): Promise<void> {
       resultPre.hidden = false;
       statusEl.textContent = '✓ Hotovo';
       statusEl.style.color = '#2ecc71';
+      const writeBtn = document.getElementById('gen-write-btn') as HTMLButtonElement | null;
+      if (writeBtn) writeBtn.hidden = false;
     }
   } catch (e) {
     statusEl.textContent = '✗ ' + (e as Error).message;
     statusEl.style.color = '#e74c3c';
   } finally {
     genBtn.disabled = false;
+  }
+}
+
+export async function writeGenResult(): Promise<void> {
+  const content = resultPre.textContent ?? '';
+  if (!content) return;
+  const writeBtn = document.getElementById('gen-write-btn') as HTMLButtonElement | null;
+  if (writeBtn) writeBtn.disabled = true;
+  statusEl.textContent = '⟳ Zapisuji…';
+  statusEl.style.color = '#aaa';
+  try {
+    const data = await apiWriteDialogue(_nodeId, content, graph.serialize());
+    if (!data.ok) throw new Error(data.error ?? 'Neznámá chyba');
+    statusEl.textContent = '✓ Zapsáno do souboru';
+    statusEl.style.color = '#2ecc71';
+  } catch (e) {
+    statusEl.textContent = '✗ ' + (e as Error).message;
+    statusEl.style.color = '#e74c3c';
+  } finally {
+    if (writeBtn) writeBtn.disabled = false;
   }
 }
 
