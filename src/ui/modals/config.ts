@@ -117,6 +117,16 @@ export async function saveConfig(): Promise<void> {
     _hasAnthropKey = newHasAnthrop;
     _hasOpenaiKey  = newHasOpenai;
 
+    // Validate gameDir
+    if (gameDir) {
+      const dirCheck = await fetch(`/api/check-gamedir?path=${encodeURIComponent(gameDir)}`).then(r => r.json() as Promise<{ ok: boolean; warnings: string[] }>);
+      if (!dirCheck.ok && dirCheck.warnings?.length) {
+        statusEl2.style.color = '#e67e22';
+        statusEl2.textContent = '⚠ ' + dirCheck.warnings.join(' ');
+        return; // leave dialog open so user can fix it
+      }
+    }
+
     if (gameDirChanged && gameDir) {
       statusEl2.textContent = 'Kontroluji projekt…';
       const check = await apiCheckGraph();

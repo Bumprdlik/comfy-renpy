@@ -68,6 +68,39 @@ app.put('/api/config', (req, res) => {
   res.json({ ok: true });
 });
 
+// GET /api/check-gamedir?path=... — validates that a directory looks like a Ren'Py game/ folder
+app.get('/api/check-gamedir', (req, res) => {
+  const dir = String(req.query.path || '').trim();
+  if (!dir) return res.json({ ok: true, warnings: [] });
+
+  if (!fs.existsSync(dir)) {
+    return res.json({ ok: false, warnings: [`Adresář neexistuje: ${dir}`] });
+  }
+
+  const warnings = [];
+  const entries = fs.readdirSync(dir);
+  const hasRpy = entries.some(e => e.endsWith('.rpy'));
+  const hasRenpySdk = fs.existsSync(path.join(dir, 'renpy')) || fs.existsSync(path.join(dir, 'launcher'));
+  const basename = path.basename(dir).toLowerCase();
+
+  if (hasRenpySdk) {
+    warnings.push('Vypadá to jako kořen Ren\'Py SDK, ne složka game/ projektu.');
+  } else if (basename !== 'game') {
+    const hasGameSubdir = fs.existsSync(path.join(dir, 'game'));
+    if (hasGameSubdir) {
+      warnings.push(`Složka obsahuje podsložku "game/" — správná cesta je pravděpodobně: ${path.join(dir, 'game')}`);
+    } else {
+      warnings.push(`Složka se nejmenuje "game" (je to "${path.basename(dir)}") — zkontroluj cestu.`);
+    }
+  }
+
+  if (!hasRpy && !hasRenpySdk) {
+    warnings.push('Nenalezeny žádné .rpy soubory — je toto správná složka game/?');
+  }
+
+  return res.json({ ok: warnings.length === 0, warnings });
+});
+
 // POST /api/browse-folder  — PowerShell + Shell.Application COM (no WinForms, fast)
 app.post('/api/browse-folder', (req, res) => {
   if (process.platform !== 'win32') return res.json({ path: null });
