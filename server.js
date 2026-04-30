@@ -828,12 +828,29 @@ app.post('/api/generate-dialogue', async (req, res) => {
 // POST /api/launch
 app.post('/api/launch', (req, res) => {
   if (!config.renpyExe) {
-    return res.status(400).json({ error: 'renpyExe není nakonfigurováno v .comfy.json' });
+    return res.status(400).json({ error: 'renpyExe není nakonfigurováno v Nastavení' });
+  }
+  if (!fs.existsSync(config.renpyExe)) {
+    return res.status(400).json({ error: `Soubor nenalezen: ${config.renpyExe}` });
   }
   const { spawn } = require('child_process');
-  const projectDir = config.gameDir ? path.dirname(config.gameDir) : '';
-  spawn(config.renpyExe, [projectDir].filter(Boolean), { detached: true, stdio: 'ignore' }).unref();
-  res.json({ ok: true });
+  const launchDir = config.gameDir ? path.dirname(config.gameDir) : '';
+  const args = launchDir ? [launchDir] : [];
+
+  let responded = false;
+  const child = spawn(config.renpyExe, args, {
+    detached: true,
+    stdio:    'ignore',
+    cwd:      path.dirname(config.renpyExe), // SDK needs to run from its own dir
+  });
+  child.on('error', err => {
+    console.error('[launch] chyba:', err.message);
+    if (!responded) { responded = true; res.status(500).json({ error: err.message }); }
+  });
+  // wait 600 ms for early spawn failure before declaring success
+  setTimeout(() => {
+    if (!responded) { responded = true; child.unref(); res.json({ ok: true }); }
+  }, 600);
 });
 
 // ── Helpers ──
