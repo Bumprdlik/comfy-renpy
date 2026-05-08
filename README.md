@@ -12,6 +12,7 @@ Navrhuješ místnosti, propojuješ je exity, přidáváš eventy, itemy a postav
 - **6 typů uzlů**: Location, Event, Item, Character, Note, Quest
 - **Obousměrné exity** — kabel ↔ se vykreslí jako dvojitá teal čára, reverzní exit se vygeneruje při exportu
 - **Inventář** — Item uzly generují pickup labely, lokace dostanou volby "Sebrat" v menu, `comfy_init.rpy` obsahuje `comfy_has()` / `comfy_give()` helpery
+- **Auto-wire script.rpy** — export automaticky nastaví `label start:` na první lokaci grafu; defaultní Ren'Py boilerplate (Eileen) se nahradí bezpečně
 - **Hratelný skeleton** — první export vyplní popis lokace jako narátorskou řádku, hra je okamžitě hratelná
 - **AI → soubor** — vygenerovaný dialog lze zapsat přímo do .rpy tlačítkem "💾 Zapsat do souboru"
 - **Validace** grafu před exportem (duplicitní ID, chybějící vazby)
@@ -43,7 +44,7 @@ npm start       # Express :3001 servíruje dist/
 
 ## Jak začít nový projekt
 
-Comfy-renpy nevytváří Ren'Py projekt sám — potřebuješ ho nejdřív vytvořit v Ren'Py launcheru, který vygeneruje správnou strukturu (`gui/`, `options.rpy`, `script.rpy` a další soubory).
+Comfy-renpy nevytváří Ren'Py projekt sám — potřebuješ ho nejdřív vytvořit v Ren'Py launcheru, který vygeneruje správnou strukturu (`gui/`, `options.rpy`, `script.rpy` a další soubory). Po prvním exportu comfy-renpy automaticky přepíše defaultní `script.rpy` (intro s Eileen) tak, aby hra začínala přímo v tvé první lokaci.
 
 **Postup:**
 
@@ -89,7 +90,7 @@ Alternativně vytvoř `.comfy.json` ručně podle `.comfy.example.json`:
 ## Typy uzlů
 
 ### Location
-Místnost v herním světě. Pojmenované **exity** (výstupní porty) propojuješ šipkami do jiných místností — tím vzniká mapa hry.
+Místnost v herním světě. Pojmenované **exity** (výstupní porty) propojuješ šipkami do jiných místností — tím vzniká mapa hry. Checkbox **🏁 Start lokace** označí, odkud hra začíná — export pak nastaví `label start:` v `script.rpy` na tuto lokaci. Pokud žádná není označena, použije se první lokace v grafu.
 
 ### Event
 Událost/scéna vázaná na lokaci. Nastavíš trigger (`auto_enter`, `menu_choice`, `condition`), prerekvizitu (Python výraz), čas dne a prioritu.

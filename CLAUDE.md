@@ -47,10 +47,12 @@ npm start      # Jen Express :3001 (servíruje dist/)
 |---|---|---|
 | GET | `/api/config` | Vrátí aktuální config (`gameDir`, `renpyExe`, `port`) |
 | PUT | `/api/config` | Uloží config do `.comfy.json` |
+| GET | `/api/check-gamedir` | Ověří, že `gameDir` vypadá jako Ren'Py `game/` složka |
 | GET | `/api/graph` | Načte `comfy-graph.json` |
 | PUT | `/api/graph` | Uloží `comfy-graph.json` (auto-save z frontendu každé 2s) |
-| POST | `/api/validate` | Validuje graf (duplicitní ID, chybějící location_id u eventů, …) |
-| POST | `/api/export-rpy` | Generuje `.rpy` soubory z grafu — Location→`locations/`, Event→`events/`, Quest→`quests/` |
+| POST | `/api/validate` | Validuje graf (duplicitní ID, chybějící location_id u eventů, více start lokací, …) |
+| POST | `/api/export-rpy` | Generuje `.rpy` soubory z grafu — Location→`locations/`, Event→`events/`, Quest→`quests/`; také auto-wire `script.rpy` |
+| POST | `/api/wire-script` | Zapíše nebo appendne COMFY marker do `script.rpy` (volá se z conflict modálu) |
 | POST | `/api/preview-rpy` | Vrátí preview `.rpy` obsahu pro konkrétní uzel (bez zápisu) |
 | GET | `/api/scan` | Zkontroluje stav `.rpy` souborů pro každý uzel v grafu |
 | POST | `/api/launch` | Spustí Ren'Py exe (detached) |
@@ -59,7 +61,7 @@ npm start      # Jen Express :3001 (servíruje dist/)
 
 | Typ | Barva | Porty | Klíčové properties |
 |---|---|---|---|
-| `renpy/location` | Modrá | inputs: blank (auto-expands) / outputs: dynamické exity | `id`, `label`, `description`, `exits[]` |
+| `renpy/location` | Modrá | inputs: blank (auto-expands) / outputs: dynamické exity | `id`, `label`, `description`, `exits[]`, `isStart` |
 | `renpy/event` | Oranžová | žádné | `id`, `location_id`, `trigger`, `trigger_label`, `prerequisite`, `time`, `repeatable`, `priority`, `notes` |
 | `renpy/item` | Fialová | žádné | `id`, `name`, `description` |
 | `renpy/character` | Teal | žádné | `id`, `name`, `voice`, `sprite_id` |
@@ -124,6 +126,19 @@ label location_kitchen:
 - `{gameDir}/comfy_init.rpy` — inventář helpers + Character `define` řádky
 
 Pokud `gameDir` není nastaven, exportuje do `{projectDir}/output/`.
+
+### Start lokace a script.rpy
+
+Každý Ren'Py projekt spouští hru z `label start:` v `script.rpy`. Po exportu comfy-renpy automaticky zajistí, aby `label start:` přešel do první lokace grafu:
+
+- **isStart property** — Location uzel může mít `isStart: true` (checkbox 🏁 v properties panelu). Pouze jedna Location může být start; zaškrtnutí jiné automaticky odznačí předchozí. Fallback: pokud žádná nemá `isStart`, použije se první Location v grafu.
+- **Detekce boilerplate** — pokud `script.rpy` obsahuje defaultní Ren'Py obsah (`You've created a new Ren'Py game.` + `define e = Character("Eileen")`), přepíše se celý soubor COMFY markerem.
+- **Existující COMFY marker** — aktualizuje se jen marker blok `kind=start`, zbytek souboru zůstane.
+- **Uživatelem upravený soubor** — export proběhne, ale zobrazí se `script-conflict` modal se třemi volbami: Přepsat / Appendnout marker / Nechat být.
+
+`POST /api/wire-script { mode, startId }` — backend akce pro conflict modal.
+
+`pickStartLocation(nodes)` helper v `server.js` — vrátí Location s `isStart === true`, nebo první Location, nebo `null`.
 
 ### Playable skeleton & Inventory systém
 
