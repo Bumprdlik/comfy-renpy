@@ -372,9 +372,8 @@ app.post('/api/export-rpy', (req, res) => {
       headerLines.push(`        return`);
     }
 
-    // footer: mark event seen, then jump back to location or return
-    const footerJump = p.location_id ? `    jump location_${p.location_id}` : '    return';
-    const footerContent = `    $ ${evtId}_seen = True\n${footerJump}`;
+    // footer: mark event seen and return to caller (location exits loop handles the jump)
+    const footerContent = `    $ ${evtId}_seen = True\n    return`;
 
     // body: body_text override (only written on first export — body is human/AI territory)
     let evtBodyContent;
