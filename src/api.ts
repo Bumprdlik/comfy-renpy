@@ -43,8 +43,12 @@ export async function apiPreviewRpy(graphData: Record<string, unknown>, lgNodeId
   return r.json() as Promise<PreviewResult>;
 }
 
-export async function apiScan(): Promise<ScanResult> {
-  const r = await fetch('/api/scan');
+export async function apiScan(graphData: Record<string, unknown>): Promise<ScanResult> {
+  const r = await fetch('/api/scan', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(graphData),
+  });
   if (!r.ok) throw new Error(await r.text());
   return r.json() as Promise<ScanResult>;
 }

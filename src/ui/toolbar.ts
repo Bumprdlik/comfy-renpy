@@ -91,7 +91,7 @@ export async function doExport(): Promise<void> {
 
 export async function scanFiles(): Promise<void> {
   try {
-    const data = await apiScan();
+    const data = await apiScan(graph.serialize());
     for (const node of graph._nodes) {
       const s = data.nodes[node.properties['id'] as string];
       if (s !== undefined) { node._status = s; node.setDirtyCanvas(true); }

@@ -731,19 +731,15 @@ app.post('/api/write-dialogue', (req, res) => {
   }
 });
 
-// GET /api/scan
-app.get('/api/scan', (req, res) => {
+// POST /api/scan — accepts graph data from frontend (same as export, avoids disk read race)
+app.post('/api/scan', (req, res) => {
   const gameDir  = config.gameDir || projectDir;
   const locDir   = path.join(gameDir, 'locations');
   const evtDir   = path.join(gameDir, 'events');
   const questDir = path.join(gameDir, 'quests');
   const itemDir  = path.join(gameDir, 'items');
 
-  const graphData = (() => {
-    const p = graphFile();
-    if (!fs.existsSync(p)) return null;
-    try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { return null; }
-  })();
+  const graphData = req.body && req.body.nodes ? req.body : null;
 
   if (!graphData) return res.json({ nodes: {}, drift: [] });
 
