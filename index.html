@@ -193,7 +193,9 @@
             <div class="help-step-num">5</div>
             <div class="help-step-body">
               <strong>Exportuj — hra je okamžitě hratelná</strong>
-              <p>Tlačítko <strong>Export .rpy</strong> vygeneruje kostry souborů. První export vyplní popis lokace a placeholder dialog — hru lze ihned spustit a procházet. Pokud máš Quest uzly, export vytvoří <code>comfy_screens.rpy</code> s tlačítkem <strong>Questy N</strong> vpravo nahoře — quest log zobrazí aktivní úkoly s hinty a dokončené questy. Dialogy piš v IDE v sekci <code>kind=body</code> nebo je vygeneruj pomocí AI (tlačítko ✨ v properties panelu).</p>
+              <p>Tlačítko <strong>Export .rpy</strong> vygeneruje kostry souborů. První export vyplní popis lokace a placeholder dialog — hru lze ihned spustit a procházet. Pokud máš Quest uzly, export vytvoří <code>comfy_screens.rpy</code> s tlačítkem <strong>Questy N</strong> vpravo nahoře.</p>
+              <p style="margin-top:7px"><strong>Co funguje bez dialogů:</strong> pohyb mezi lokacemi, popis místností (z pole <em>description</em>), sebrání itemů, spouštění eventů (placeholder text).</p>
+              <p style="margin-top:5px"><strong>Co potřebuje <code>body_text</code>:</strong> questy se nespustí ani neposunou bez volání <code>comfy_quest_start("id")</code> a <code>comfy_quest_advance("id")</code> v těle eventu. <code>body_text</code> lze napsat přímo v properties panelu (nebo v IDE v sekci <code>kind=body</code>), případně ho vygenerovat přes AI (tlačítko ✨).</p>
             </div>
           </li>
           <li>
