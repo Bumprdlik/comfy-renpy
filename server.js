@@ -212,8 +212,8 @@ app.post('/api/export-rpy', (req, res) => {
   const nodeById = {};
   for (const n of (graphData.nodes || [])) nodeById[n.id] = n;
 
-  // Map location_id → lists of items and characters present there
-  const locItems = {}, locChars = {}, locItemNodes = {}, locCharNodes = {};
+  // Map location_id → lists of items, characters, and events present there
+  const locItems = {}, locChars = {}, locItemNodes = {}, locCharNodes = {}, locEventNodes = {};
   for (const n of (graphData.nodes || [])) {
     const lid = n.properties && n.properties.location_id;
     if (!lid) continue;
@@ -224,6 +224,9 @@ app.post('/api/export-rpy', (req, res) => {
     if (n.type === 'renpy/character') {
       (locChars[lid]     = locChars[lid]     || []).push(n.properties.name || n.properties.id);
       (locCharNodes[lid] = locCharNodes[lid] || []).push(n.properties);
+    }
+    if (n.type === 'renpy/event') {
+      (locEventNodes[lid] = locEventNodes[lid] || []).push(n.properties);
     }
   }
 
@@ -281,12 +284,30 @@ app.post('/api/export-rpy', (req, res) => {
 
     // exits region — navigation menu at the bottom of the location
     let exitsLines = [];
-    const itemsHere = locItemNodes[locId] || [];
-    const hasAnyExit = allExits.length > 0 || itemsHere.length > 0;
-    if (!hasAnyExit) {
-      exitsLines = ['    return'];
+    const itemsHere  = locItemNodes[locId]  || [];
+    const eventsHere = locEventNodes[locId] || [];
+    const autoEvents = eventsHere.filter(e => e.trigger === 'auto_enter').sort((a, b) => (b.priority || 0) - (a.priority || 0));
+    const menuEvents = eventsHere.filter(e => e.trigger === 'menu_choice').sort((a, b) => (b.priority || 0) - (a.priority || 0));
+
+    // auto_enter events: called before menu (event header handles its own prereq guard)
+    for (const evt of autoEvents) {
+      exitsLines.push(`    call ${evt.id}`);
+    }
+
+    const hasMenu = allExits.length > 0 || itemsHere.length > 0 || menuEvents.length > 0;
+    if (!hasMenu) {
+      exitsLines.push('    return');
     } else {
       exitsLines.push('    menu:');
+      // menu_choice events
+      for (const evt of menuEvents) {
+        if (!evt.id) continue;
+        const trigLabel = (evt.trigger_label || evt.id).replace(/"/g, '\\"');
+        const showCond  = !evt.repeatable ? ` if not ${evt.id}_seen` : '';
+        exitsLines.push(`        "${trigLabel}"${showCond}:`);
+        exitsLines.push(`            call ${evt.id}`);
+      }
+      // navigation exits
       for (const exit of allExits) {
         if (exit.targetId) {
           exitsLines.push(`        "${exit.name}":`);
@@ -296,6 +317,7 @@ app.post('/api/export-rpy', (req, res) => {
           exitsLines.push(`            pass`);
         }
       }
+      // item pickups
       for (const item of itemsHere) {
         if (!item.id) continue;
         const pickupName = (item.name || item.id).replace(/"/g, '\\"');
