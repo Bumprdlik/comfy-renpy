@@ -265,12 +265,41 @@ function runSimulation(graphData) {
     seen:    [],
   };
 
-  const visited       = new Set([hashState(initialState)]);
-  const queue         = [initialState];
   const reachableEvents = new Set();
   const reachableItems  = new Set();
   const reachableStages = new Set(); // "questId:N" or "questId:done"
   const nondeterministicPrereqs = new Set(); // event ids with null prereq eval
+
+  // Fire auto_enter events at the start location before BFS begins
+  const autoEvtsAtStart = (locEvents[startLoc.properties.id] || [])
+    .filter(e => e.trigger === 'auto_enter')
+    .sort((a, b) => (b.priority || 0) - (a.priority || 0));
+
+  let initialStates = [initialState];
+  for (const evt of autoEvtsAtStart) {
+    if (!evt.id) continue;
+    const nextStates = [];
+    for (const st of initialStates) {
+      if (st.seen.includes(evt.id)) { nextStates.push(st); continue; }
+      const ev = evalPrereq(evt.prerequisite, st);
+      if (ev === null) {
+        nondeterministicPrereqs.add(evt.id);
+        nextStates.push(st);
+        nextStates.push(applyEffects(evt.body_text, evt.id, questMeta, st));
+        reachableEvents.add(evt.id);
+      } else if (ev) {
+        nextStates.push(applyEffects(evt.body_text, evt.id, questMeta, st));
+        reachableEvents.add(evt.id);
+      } else {
+        nextStates.push(st);
+      }
+    }
+    initialStates = nextStates;
+  }
+
+  const visited = new Set(initialStates.map(hashState));
+  const queue   = [...initialStates];
+  initialStates.forEach(s => recordStages(s, reachableStages));
 
   let exploded = false;
 
@@ -490,4 +519,4 @@ function recordStages(state, set) {
   for (const qid of state.qDone) set.add(qid + ':done');
 }
 
-module.exports = { runSimulation };
+module.exports = { runSimulation, evalPrereq };
