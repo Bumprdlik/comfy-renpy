@@ -12,28 +12,55 @@
 <div id="toolbar">
   <span class="logo">⬡ Comfy-Renpy</span>
   <div class="sep"></div>
-  <button class="node-btn loc" onclick="addNode('renpy/location')" title="Přidat Location (L)"><span class="btn-icon">📍</span><span class="btn-label">+ Location</span></button>
-  <button class="node-btn evt" onclick="addNode('renpy/event')" title="Přidat Event (E)"><span class="btn-icon">⚡</span><span class="btn-label">+ Event</span></button>
-  <button class="node-btn itm" onclick="addNode('renpy/item')" title="Přidat Item (I)"><span class="btn-icon">🎒</span><span class="btn-label">+ Item</span></button>
-  <button class="node-btn chr" onclick="addNode('renpy/character')" title="Přidat Character (C)"><span class="btn-icon">🧑</span><span class="btn-label">+ Character</span></button>
-  <button class="node-btn" style="border-left-color:#886600" onclick="addNode('renpy/note')" title="Přidat Note (N)"><span class="btn-icon">📝</span><span class="btn-label">+ Note</span></button>
-  <button class="node-btn" style="border-left-color:#8b1a1a" onclick="addNode('renpy/quest')" title="Přidat Quest (Q)"><span class="btn-icon">⚔️</span><span class="btn-label">+ Quest</span></button>
-  <button class="node-btn" style="border-left-color:#336688" onclick="addGroup()" title="Přidat skupinu (G)"><span class="btn-icon">🗂️</span><span class="btn-label">Skupina</span></button>
+
+  <!-- Přidat dropdown -->
+  <div class="dropdown-wrap">
+    <button id="add-btn" class="node-btn loc"><span class="btn-icon">＋▾</span><span class="btn-label">Přidat</span></button>
+    <div id="add-panel" class="dropdown-panel">
+      <button onclick="addNode('renpy/location')">📍 Location <span class="kbd">L</span></button>
+      <button onclick="addNode('renpy/event')">⚡ Event <span class="kbd">E</span></button>
+      <button onclick="addNode('renpy/item')">🎒 Item <span class="kbd">I</span></button>
+      <button onclick="addNode('renpy/character')">🧑 Character <span class="kbd">C</span></button>
+      <button onclick="addNode('renpy/note')">📝 Note <span class="kbd">N</span></button>
+      <button onclick="addNode('renpy/quest')">⚔️ Quest <span class="kbd">Q</span></button>
+      <hr class="dropdown-sep">
+      <button onclick="addGroup()">🗂️ Skupina <span class="kbd">G</span></button>
+    </div>
+  </div>
+
   <div class="sep"></div>
   <button class="primary" onclick="saveGraph()" title="Uložit graf"><span class="btn-icon">💾</span><span class="btn-label">Uložit</span></button>
-  <button onclick="validateGraph()" title="Zkontrolovat graf"><span class="btn-icon">✅</span><span class="btn-label">Zkontrolovat</span></button>
   <button onclick="exportRpy()" title="Exportovat .rpy soubory"><span class="btn-icon">📤</span><span class="btn-label">Export .rpy</span></button>
-  <button onclick="openGameDir()" title="Otevřít herní složku v průzkumníku">📂</button>
-  <button onclick="openVsCode()" title="Otevřít ve VS Code"><span class="btn-icon">💻</span><span class="btn-label">⎇ Code</span></button>
-  <button onclick="scanFiles()" title="Zkontrolovat stav .rpy souborů"><span class="btn-icon">🔍</span><span class="btn-label">Scan</span></button>
-  <button onclick="previewRpy()" title="Náhled .rpy výstupu"><span class="btn-icon">👁️</span><span class="btn-label">Preview</span></button>
+
+  <!-- Kontroly dropdown -->
+  <div class="dropdown-wrap">
+    <button id="check-btn"><span class="btn-icon">🔍▾</span><span class="btn-label">Kontroly</span></button>
+    <div id="check-panel" class="dropdown-panel">
+      <button onclick="validateGraph()" title="Strukturální validace: duplicitní ID, chybějící propojení">✅ Validace struktury</button>
+      <button onclick="scanFiles()" title="Stav .rpy souborů na disku: missing/stub/written/drift">📁 Stav .rpy souborů</button>
+      <button onclick="runChecker()" title="Logická analýza questů a dosažitelnosti">🧪 Logika questů</button>
+      <hr class="dropdown-sep">
+      <button onclick="previewRpy()" title="Náhled .rpy obsahu vybraného uzlu">👁️ Náhled .rpy</button>
+    </div>
+  </div>
+
+  <!-- Otevřít dropdown -->
+  <div class="dropdown-wrap">
+    <button id="open-btn"><span class="btn-icon">📂▾</span><span class="btn-label">Otevřít</span></button>
+    <div id="open-panel" class="dropdown-panel">
+      <button onclick="openGameDir()">📂 Herní složku</button>
+      <button onclick="openVsCode()">💻 VS Code</button>
+    </div>
+  </div>
+
   <button onclick="autoLayout()" title="Automatické rozmístění uzlů"><span class="btn-icon">⊞</span><span class="btn-label">Auto-layout</span></button>
   <button class="launch-btn" onclick="launchRenpy()" title="Spustit Ren'Py"><span class="btn-icon">▶</span><span class="btn-label">Spustit</span></button>
+
   <div class="sep"></div>
   <button onclick="loadExample()" title="Načíst ukázkový graf"><span class="btn-icon">📖</span><span class="btn-label">Příklad</span></button>
-  <button onclick="runChecker()" title="Quest checker — analýza logiky questů"><span class="btn-icon">🧪</span><span class="btn-label">Checker</span></button>
   <button onclick="openConfig()" title="Nastavení"><span class="btn-icon">⚙️</span><span class="btn-label">Nastavení</span></button>
   <button onclick="openHelp()" title="Nápověda"><span class="btn-icon">❓</span><span class="btn-label">Nápověda</span></button>
+
   <div class="sep"></div>
   <button id="compact-toggle" onclick="toggleCompact()" title="Kompaktní mód" style="padding:3px 7px;font-size:14px;">⊟</button>
   <div class="sep"></div>
@@ -366,7 +393,7 @@ label location_kitchen:
   <div id="checker-modal">
     <h2>🧪 Quest checker</h2>
     <div class="val-body" id="checker-body"></div>
-    <div id="checker-stats" style="font-size:11px;color:#7f8c8d;margin-top:8px;font-family:monospace"></div>
+    <div id="checker-stats"></div>
     <div class="val-actions">
       <button onclick="closeChecker()">Zavřít</button>
     </div>

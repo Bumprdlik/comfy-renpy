@@ -443,6 +443,30 @@ button.launch-btn:hover { background: var(--ok); color: #fff; }
 .checker-goto { background: none; border: none; color: var(--text-hint); cursor: pointer; font-size: 12px; padding: 0 4px; flex-shrink: 0; margin-left: auto; opacity: 0.6; }
 .checker-goto:hover { color: var(--accent); opacity: 1; }
 .checker-hint { font-size: 11px; color: var(--text-hint); margin-top: 3px; font-style: italic; }
+#checker-stats { font-size: 11px; color: var(--text-hint); font-family: monospace; padding: 0 20px 4px; margin-top: 4px; }
+
+/* ── Dropdown menus ── */
+.dropdown-wrap { position: relative; display: inline-flex; }
+.dropdown-panel {
+  display: none; position: absolute; top: 100%; left: 0; margin-top: 2px;
+  background: var(--bg-panel); border: 1px solid var(--border-input); border-radius: 4px;
+  min-width: 190px; padding: 4px; z-index: 50;
+  box-shadow: 0 4px 16px rgba(0,0,0,.55);
+  flex-direction: column;
+}
+.dropdown-panel.open { display: flex; }
+.dropdown-panel button {
+  width: 100%; justify-content: flex-start; padding: 6px 10px;
+  border: none; background: transparent; border-radius: 3px;
+  font-size: 12px; gap: 8px; text-align: left;
+}
+.dropdown-panel button:hover { background: var(--bg-input); }
+.dropdown-sep { border: none; border-top: 1px solid var(--border-input); margin: 3px 4px; }
+.kbd {
+  margin-left: auto; font-size: 10px; color: var(--text-hint);
+  padding: 1px 5px; background: var(--bg-input); border-radius: 2px;
+  font-family: monospace; flex-shrink: 0;
+}
 
 /* ── Scan modal ── */
 #scan-overlay {

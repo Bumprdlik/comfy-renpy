@@ -24,6 +24,7 @@ import { validateGraph, closeVal, valOverlayClick } from './ui/modals/validate';
 import { previewRpy, closePreview, previewOverlayClick } from './ui/modals/preview';
 import { closeScriptConflict, scOverlayClick, wireScript } from './ui/modals/script-conflict';
 import { closeScanModal, scanOverlayClick } from './ui/modals/scan';
+import { initDropdown, initDropdownGlobal } from './ui/dropdown';
 
 LiteGraph.NODE_TITLE_HEIGHT = 22;
 LiteGraph.NODE_SLOT_HEIGHT = 20;
@@ -217,5 +218,9 @@ window.checkerGoto        = checkerGoto;
   initSearch(lgCanvas);
   initMinimap(lgCanvas, canvasEl);
   initCompactMode();
+  initDropdown('add-btn',   'add-panel');
+  initDropdown('check-btn', 'check-panel');
+  initDropdown('open-btn',  'open-panel');
+  initDropdownGlobal();
   maybeShowHelp();
 })();
