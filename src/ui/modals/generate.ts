@@ -236,6 +236,10 @@ export function setBatchGenVisible(visible: boolean): void {
 }
 
 export async function batchGenerateDialogues(): Promise<void> {
+  if (!_hasKey) {
+    alert('API klíč není nastaven — nastav ho v Nastavení.');
+    return;
+  }
   const events = graph._nodes.filter(n =>
     n.type === 'renpy/event' &&
     !String(n.properties['body_text'] ?? '').trim()
@@ -254,6 +258,7 @@ export async function batchGenerateDialogues(): Promise<void> {
       const prompt = buildPrompt(evt.id);
       const data = await apiGenerateDialogue(prompt);
       if (data.error) throw new Error(data.error);
+      if (!data.hasKey) throw new Error('API klíč není nastaven');
       if (data.result) {
         evt.properties['body_text'] = data.result;
         done++;

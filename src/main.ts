@@ -215,6 +215,8 @@ window.batchGenerateDialogues = batchGenerateDialogues;
     }
   } catch (e) {
     console.error('Chyba načítání grafu:', e);
+    statusEl.textContent = '✗ Chyba načítání: ' + (e as Error).message;
+    statusEl.style.color = '#e74c3c';
   }
   graph.start();
   initSearch(lgCanvas);

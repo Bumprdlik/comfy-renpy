@@ -97,8 +97,9 @@ export async function apiOpenVsCode(): Promise<void> {
   if (!r.ok) { const d = await r.json() as { error?: string }; if (d.error) alert(d.error); }
 }
 
-export async function apiOpenGameDir(): Promise<void> {
-  await fetch('/api/open-game-dir', { method: 'POST' });
+export async function apiOpenGameDir(): Promise<{ ok?: boolean; error?: string }> {
+  const r = await fetch('/api/open-game-dir', { method: 'POST' });
+  return r.json() as Promise<{ ok?: boolean; error?: string }>;
 }
 
 export async function apiOpenFile(id: string, nodeType: string): Promise<{ ok?: boolean; error?: string }> {

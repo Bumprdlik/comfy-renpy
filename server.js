@@ -1013,6 +1013,9 @@ app.post('/api/open-vscode', (req, res) => {
 // POST /api/open-game-dir — open gameDir in system file manager
 app.post('/api/open-game-dir', (req, res) => {
   const dir = config.gameDir || projectDir;
+  if (!fs.existsSync(dir)) {
+    return res.status(400).json({ error: `Adresář neexistuje: ${dir}` });
+  }
   openPath(dir);
   res.json({ ok: true });
 });

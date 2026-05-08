@@ -224,13 +224,20 @@ export async function runChecker(): Promise<void> {
     apiCheck(graphData).catch(e => ({ ok: false, issues: [], error: (e as Error).message })),
     apiSimulate(graphData).catch(e => ({ issues: [], stats: {}, error: (e as Error).message })),
   ]);
+  const errs = [(checkResult as { error?: string }).error, (simResult as { error?: string }).error].filter(Boolean);
+  if (errs.length) { alert('Checker chyba:\n' + errs.join('\n')); }
   openCheckerModal(checkResult.issues, simResult.issues, simResult.stats);
 }
 
 export { closeChecker, checkerOverlayClick, checkerGoto };
 
 export async function openGameDir(): Promise<void> {
-  await apiOpenGameDir();
+  try {
+    const r = await apiOpenGameDir();
+    if (r.error) alert(r.error);
+  } catch (e) {
+    alert('Chyba otevření složky: ' + (e as Error).message);
+  }
 }
 
 export async function openVsCode(): Promise<void> {
