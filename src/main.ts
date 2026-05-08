@@ -12,7 +12,7 @@ import { apiGetGraph, apiGetConfig } from './api';
 import { scheduleSave, saveGraph, setLastSavedJson, statusEl } from './ui/autosave';
 import { updateStats } from './ui/stats';
 import { renderPanel, clearPanel, updateExit, updateExitReturn, toggleExitBidir, removeExit, addExit, setPanelHasKey } from './ui/panel';
-import { addNode, addGroup, exportRpy, doExport, scanFiles, launchRenpy, autoLayout, loadExample, openGameDir, openVsCode, toggleCompact, initCompactMode } from './ui/toolbar';
+import { addNode, addGroup, exportRpy, doExport, scanFiles, launchRenpy, autoLayout, loadExample, openGameDir, openVsCode, toggleCompact, initCompactMode, runChecker, closeChecker, checkerOverlayClick, checkerGoto } from './ui/toolbar';
 import { initHistory, captureHistory, undo, redo } from './ui/history';
 import { initSearch } from './ui/search';
 import { initMinimap } from './ui/minimap';
@@ -183,7 +183,11 @@ window.updateExitReturn = updateExitReturn;
 window.toggleExitBidir  = toggleExitBidir;
 window.removeExit       = removeExit;
 window.addExit          = addExit;
-window.loadExample      = loadExample;
+window.loadExample        = loadExample;
+window.runChecker         = runChecker;
+window.closeChecker       = closeChecker;
+window.checkerOverlayClick = checkerOverlayClick;
+window.checkerGoto        = checkerGoto;
 
 (async () => {
   try {

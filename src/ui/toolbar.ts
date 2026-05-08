@@ -1,8 +1,9 @@
 import { graph, refreshDuplicateIds } from '../graph/state';
 import { scheduleSave, saveGraph, setLastSavedJson, statusEl } from './autosave';
 import { saveExportSnapshot } from './dirtyTracker';
-import { apiExportRpy, apiScan, apiLaunch, apiValidate, apiOpenGameDir, apiOpenVsCode } from '../api';
+import { apiExportRpy, apiScan, apiLaunch, apiValidate, apiOpenGameDir, apiOpenVsCode, apiCheck, apiSimulate } from '../api';
 import { showValModal } from './modals/validate';
+import { openCheckerModal, closeChecker, checkerOverlayClick, checkerGoto } from './modals/checker';
 import { openScriptConflictModal } from './modals/script-conflict';
 import { openScanModal } from './modals/scan';
 import { updateStats } from './stats';
@@ -215,6 +216,18 @@ export async function loadExample(): Promise<void> {
     alert('Chyba načítání příkladu: ' + (e as Error).message);
   }
 }
+
+export async function runChecker(): Promise<void> {
+  openCheckerModal([], [], {}, true);
+  const graphData = graph.serialize();
+  const [checkResult, simResult] = await Promise.all([
+    apiCheck(graphData).catch(e => ({ ok: false, issues: [], error: (e as Error).message })),
+    apiSimulate(graphData).catch(e => ({ issues: [], stats: {}, error: (e as Error).message })),
+  ]);
+  openCheckerModal(checkResult.issues, simResult.issues, simResult.stats);
+}
+
+export { closeChecker, checkerOverlayClick, checkerGoto };
 
 export async function openGameDir(): Promise<void> {
   await apiOpenGameDir();

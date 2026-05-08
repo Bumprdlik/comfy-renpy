@@ -424,6 +424,26 @@ button.launch-btn:hover { background: var(--ok); color: #fff; }
 .val-ok { font-size: 12px; color: var(--ok); padding: 8px 0; }
 .val-actions { display: flex; gap: 8px; justify-content: flex-end; padding: 10px 20px 14px; border-top: 1px solid var(--bg-input); flex-shrink: 0; }
 
+/* ── Checker modal ── */
+#checker-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.65); z-index: 110;
+  align-items: center; justify-content: center;
+}
+#checker-overlay.open { display: flex; }
+#checker-modal {
+  background: var(--bg-panel); border: 1px solid var(--border-input); border-radius: 6px;
+  width: 620px; max-width: 96vw; max-height: 84vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 8px 40px rgba(0,0,0,.6);
+}
+#checker-modal h2 { font-size: 14px; font-weight: 600; color: var(--text); padding: 16px 20px 0; }
+.checker-phase-heading { font-size: 11px; color: var(--text-dim); font-weight: 600; margin: 14px 0 4px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+.checker-item { position: relative; }
+.checker-goto { background: none; border: none; color: var(--text-hint); cursor: pointer; font-size: 12px; padding: 0 4px; flex-shrink: 0; margin-left: auto; opacity: 0.6; }
+.checker-goto:hover { color: var(--accent); opacity: 1; }
+.checker-hint { font-size: 11px; color: var(--text-hint); margin-top: 3px; font-style: italic; }
+
 /* ── Scan modal ── */
 #scan-overlay {
   display: none; position: fixed; inset: 0;

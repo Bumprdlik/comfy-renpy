@@ -142,4 +142,8 @@ interface Window {
   closeScanModal(): void;
   scanOverlayClick(e: MouseEvent): void;
   jumpToNode(lgNodeId: number): void;
+  runChecker(): Promise<void>;
+  closeChecker(): void;
+  checkerOverlayClick(e: MouseEvent): void;
+  checkerGoto(lgNodeId: number): void;
 }

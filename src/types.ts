@@ -53,6 +53,32 @@ export interface QuestProps {
   stages: string;
 }
 
+export interface CheckIssue {
+  severity: 'error' | 'warning' | 'info';
+  code: string;
+  nodeId: number | null;
+  message: string;
+  hint: string | null;
+}
+
+export interface CheckResult {
+  ok: boolean;
+  issues: CheckIssue[];
+  error?: string;
+}
+
+export interface SimulateResult {
+  issues: CheckIssue[];
+  stats: {
+    states?: number;
+    reachableEvents?: number;
+    reachableItems?: number;
+    reachableStages?: number;
+    exploded?: boolean;
+  };
+  error?: string;
+}
+
 export type ScanStatus = 'written' | 'stub' | 'missing' | 'drift' | 'ok';
 
 export interface ValidationResult {

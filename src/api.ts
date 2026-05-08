@@ -1,4 +1,4 @@
-import type { ValidationResult, ExportResult, PreviewResult, ConfigData, ScanResult } from './types';
+import type { ValidationResult, ExportResult, PreviewResult, ConfigData, ScanResult, CheckResult, SimulateResult } from './types';
 
 export async function apiGetGraph(): Promise<Record<string, unknown>> {
   const r = await fetch('/api/graph');
@@ -51,6 +51,24 @@ export async function apiScan(graphData: Record<string, unknown>): Promise<ScanR
   });
   if (!r.ok) throw new Error(await r.text());
   return r.json() as Promise<ScanResult>;
+}
+
+export async function apiCheck(graphData: Record<string, unknown>): Promise<CheckResult> {
+  const r = await fetch('/api/check', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(graphData),
+  });
+  return r.json() as Promise<CheckResult>;
+}
+
+export async function apiSimulate(graphData: Record<string, unknown>): Promise<SimulateResult> {
+  const r = await fetch('/api/simulate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(graphData),
+  });
+  return r.json() as Promise<SimulateResult>;
 }
 
 export async function apiGetConfig(): Promise<ConfigData> {

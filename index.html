@@ -31,6 +31,7 @@
   <button class="launch-btn" onclick="launchRenpy()" title="Spustit Ren'Py"><span class="btn-icon">▶</span><span class="btn-label">Spustit</span></button>
   <div class="sep"></div>
   <button onclick="loadExample()" title="Načíst ukázkový graf"><span class="btn-icon">📖</span><span class="btn-label">Příklad</span></button>
+  <button onclick="runChecker()" title="Quest checker — analýza logiky questů"><span class="btn-icon">🧪</span><span class="btn-label">Checker</span></button>
   <button onclick="openConfig()" title="Nastavení"><span class="btn-icon">⚙️</span><span class="btn-label">Nastavení</span></button>
   <button onclick="openHelp()" title="Nápověda"><span class="btn-icon">❓</span><span class="btn-label">Nápověda</span></button>
   <div class="sep"></div>
@@ -356,6 +357,18 @@ label location_kitchen:
     <div class="val-actions">
       <button onclick="closeVal()">Zavřít</button>
       <button id="val-export-btn" class="primary" onclick="closeVal(); doExport()">Export i přesto</button>
+    </div>
+  </div>
+</div>
+
+<!-- Checker modal -->
+<div id="checker-overlay" onclick="checkerOverlayClick(event)">
+  <div id="checker-modal">
+    <h2>🧪 Quest checker</h2>
+    <div class="val-body" id="checker-body"></div>
+    <div id="checker-stats" style="font-size:11px;color:#7f8c8d;margin-top:8px;font-family:monospace"></div>
+    <div class="val-actions">
+      <button onclick="closeChecker()">Zavřít</button>
     </div>
   </div>
 </div>

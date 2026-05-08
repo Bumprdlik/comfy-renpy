@@ -2,6 +2,8 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const { runStaticChecks } = require('./server-checker');
+const { runSimulation }   = require('./server-simulator');
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -308,8 +310,11 @@ app.post('/api/export-rpy', (req, res) => {
       // menu_choice events
       for (const evt of menuEvents) {
         if (!evt.id) continue;
-        const trigLabel = (evt.trigger_label || evt.id).replace(/"/g, '\\"');
-        const showCond  = !evt.repeatable ? ` if not ${evt.id}_seen` : '';
+        const trigLabel  = (evt.trigger_label || evt.id).replace(/"/g, '\\"');
+        const seenCond   = !evt.repeatable ? `not ${evt.id}_seen` : '';
+        const prereqStr  = (evt.prerequisite || '').trim();
+        const condParts  = [seenCond, prereqStr].filter(Boolean);
+        const showCond   = condParts.length ? ` if ${condParts.join(' and ')}` : '';
         exitsLines.push(`        "${trigLabel}"${showCond}:`);
         exitsLines.push(`            call ${evt.id}`);
       }
@@ -836,6 +841,26 @@ app.post('/api/scan', (req, res) => {
   }
 
   res.json({ nodes: nodeStatuses, drift });
+});
+
+// POST /api/check — static quest logic checker
+app.post('/api/check', (req, res) => {
+  try {
+    const result = runStaticChecks(req.body);
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ ok: false, issues: [], error: e.message });
+  }
+});
+
+// POST /api/simulate — BFS state space simulator
+app.post('/api/simulate', (req, res) => {
+  try {
+    const result = runSimulation(req.body);
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ issues: [], stats: {}, error: e.message });
+  }
 });
 
 // POST /api/validate
