@@ -50,7 +50,7 @@ export interface QuestProps {
   stages: string;
 }
 
-export type ScanStatus = 'written' | 'stub' | 'missing' | 'drift';
+export type ScanStatus = 'written' | 'stub' | 'missing' | 'drift' | 'ok';
 
 export interface ValidationResult {
   ok: boolean;

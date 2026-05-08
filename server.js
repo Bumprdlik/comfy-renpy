@@ -650,9 +650,9 @@ app.get('/api/scan', (req, res) => {
       continue;
     }
 
-    // Quest and Item files are structural-only — no dialog needed, marker = written
+    // Quest and Item files are structural-only — no dialog needed, marker = ok
     if (node.type === 'renpy/quest' || node.type === 'renpy/item') {
-      nodeStatuses[id] = 'written';
+      nodeStatuses[id] = 'ok';
       continue;
     }
 
