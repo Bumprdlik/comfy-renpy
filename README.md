@@ -41,6 +41,30 @@ npm start       # Express :3001 servíruje dist/
 # → otevři http://localhost:3001
 ```
 
+## Jak začít nový projekt
+
+Comfy-renpy nevytváří Ren'Py projekt sám — potřebuješ ho nejdřív vytvořit v Ren'Py launcheru, který vygeneruje správnou strukturu (`gui/`, `options.rpy`, `script.rpy` a další soubory).
+
+**Postup:**
+
+1. Otevři **Ren'Py launcher** → *Create New Project* → zadej název a umístění.
+2. Projekt bude mít tuto strukturu:
+   ```
+   MujProjekt/         ← kořen projektu (sem ukazuje Ren'Py launcher)
+     game/             ← sem patří .rpy soubory
+       gui/
+       options.rpy
+       script.rpy
+     log.txt
+   ```
+3. V comfy-renpy klikni na **⚙ Nastavení** a nastav `gameDir` na cestu ke složce **`game/`** (ne na kořen projektu).
+
+> **Časté chyby:**
+> - `gameDir` ukazuje na kořen projektu (`MujProjekt/`) místo na `MujProjekt/game/` → export jde na špatné místo
+> - `gameDir` ukazuje na složku Ren'Py SDK místo na tvůj projekt
+>
+> Comfy-renpy tě na obě chyby upozorní při uložení nastavení.
+
 ## Konfigurace
 
 Klikni na **⚙ Nastavení** v toolbaru a nastav:

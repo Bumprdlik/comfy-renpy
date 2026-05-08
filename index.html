@@ -129,19 +129,31 @@
           <li>
             <div class="help-step-num">1</div>
             <div class="help-step-body">
-              <strong>Nastav projekt</strong>
-              <p>Klikni na <strong>⚙ Nastavení</strong> a zadej cestu k adresáři <code>game/</code> tvého Ren'Py projektu. Sem půjdou exportované soubory. Volitelně nastav cestu k <code>renpy.exe</code> pro spouštění přímo z editoru.</p>
+              <strong>Vytvoř Ren'Py projekt</strong>
+              <p>Otevři <strong>Ren'Py launcher</strong> → <em>Create New Project</em>. Launcher vygeneruje správnou strukturu včetně <code>gui/</code>, <code>options.rpy</code> a dalších souborů. Výsledek bude vypadat takto:</p>
+              <pre style="margin:.4em 0;padding:.5em .7em;background:#1a1a2a;border-radius:4px;font-size:.82em;line-height:1.5">MujProjekt/
+  game/         ← toto nastav jako gameDir
+    gui/
+    options.rpy
+    script.rpy</pre>
             </div>
           </li>
           <li>
             <div class="help-step-num">2</div>
+            <div class="help-step-body">
+              <strong>Nastav projekt v comfy-renpy</strong>
+              <p>Klikni na <strong>⚙ Nastavení</strong> a zadej cestu přímo ke složce <code>game/</code> (ne ke kořeni projektu). Sem půjdou exportované soubory. Editor tě upozorní, pokud cesta nevypadá správně. Volitelně nastav cestu k <code>renpy.exe</code> pro spouštění přímo z editoru.</p>
+            </div>
+          </li>
+          <li>
+            <div class="help-step-num">3</div>
             <div class="help-step-body">
               <strong>Vytvoř lokace a propoj je</strong>
               <p>Tlačítkem <strong>+ Location</strong> přidej místnosti. V pravém panelu pojmenuj každou lokaci a přidej <em>exity</em> (směry, kudy se dá odejít). Pak přetáhni drát z exit portu jedné lokace na vstup druhé — tak vzniká mapa.</p>
             </div>
           </li>
           <li>
-            <div class="help-step-num">3</div>
+            <div class="help-step-num">4</div>
             <div class="help-step-body">
               <strong>Přidej eventy, itemy a postavy</strong>
               <p><strong>+ Event</strong> — scéna nebo událost vázaná na lokaci.<br>
@@ -150,14 +162,14 @@
             </div>
           </li>
           <li>
-            <div class="help-step-num">4</div>
+            <div class="help-step-num">5</div>
             <div class="help-step-body">
               <strong>Exportuj — hra je okamžitě hratelná</strong>
               <p>Tlačítko <strong>Export .rpy</strong> vygeneruje kostry souborů. První export vyplní popis lokace a placeholder dialog — hru lze ihned spustit a procházet. Dialogy piš v IDE v sekci <code>kind=body</code> nebo je vygeneruj pomocí AI (tlačítko ✨ v properties panelu).</p>
             </div>
           </li>
           <li>
-            <div class="help-step-num">5</div>
+            <div class="help-step-num">6</div>
             <div class="help-step-body">
               <strong>Sleduj postup přes Scan</strong>
               <p>Tlačítko <strong>Scan</strong> zkontroluje stav každého uzlu a zobrazí barevný badge na uzlu.</p>
