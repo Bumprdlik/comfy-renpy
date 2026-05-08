@@ -82,6 +82,22 @@ export function initMinimap(lgCanvas: LGraphCanvas, mainCanvas: HTMLCanvasElemen
 
   render();
 
+  // Scroll wheel to zoom (toward viewport center)
+  mini.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const { scale, offset } = ds();
+    const factor   = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+    const newScale = Math.min(Math.max(scale * factor, 0.1), 10);
+    const cx = mainCanvas.width  / 2;
+    const cy = mainCanvas.height / 2;
+    const ratio = newScale / scale;
+    ds().scale     = newScale;
+    ds().offset[0] = cx + (offset[0] - cx) * ratio;
+    ds().offset[1] = cy + (offset[1] - cy) * ratio;
+    lgCanvas.setDirty(true, true);
+  }, { passive: false });
+
   // Click + drag to pan
   mini.addEventListener('mousedown', (e) => {
     e.preventDefault();
