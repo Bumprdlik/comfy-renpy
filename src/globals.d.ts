@@ -146,4 +146,5 @@ interface Window {
   closeChecker(): void;
   checkerOverlayClick(e: MouseEvent): void;
   checkerGoto(lgNodeId: number): void;
+  batchGenerateDialogues(): Promise<void>;
 }

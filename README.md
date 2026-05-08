@@ -15,7 +15,8 @@ Navrhuješ místnosti, propojuješ je exity, přidáváš eventy, itemy a postav
 - **Quest log UI** — export vygeneruje `comfy_screens.rpy` s tlačítkem "Questy N" vpravo nahoře a modálním panelem s aktivními questy (hinty) a dokončenými; soubor je jen tvůj, nikdy se nepřepíše
 - **Auto-wire script.rpy** — export automaticky nastaví `label start:` na první lokaci grafu; defaultní Ren'Py boilerplate (Eileen) se nahradí bezpečně
 - **Hratelný skeleton** — první export vyplní popis lokace jako narátorskou řádku, hra je okamžitě hratelná; `body_text` property na Event/Item uzlu přednaplní dialog při prvním exportu
-- **AI → soubor** — vygenerovaný dialog lze zapsat přímo do .rpy tlačítkem "💾 Zapsat do souboru"
+- **AI → body_text** — vygenerovaný dialog se uloží do `body_text` property; při exportu se zapíše do `kind=body` markeru. Tlačítko **✨ Generovat dialog** na Event uzlu, **✨ AI dialogy** v toolbaru pro hromadné generování všech prázdných eventů najednou
+- **Strukturované AI signály** na Event uzlu — pole Quest akce / Quest ID / Dá item předají AI přesné instrukce, jaký `comfy_quest_start`/`comfy_quest_advance`/`comfy_give` call vložit do dialogu
 - **Quest checker** — dvoustupňová analýza logiky: statická kontrola referencí + BFS simulátor dosažitelnosti odhalí unreachable eventy, deadlocky itemů a neúplné cesty questů
 - **Validace struktury** grafu před exportem (duplicitní ID, chybějící vazby)
 - **Export do .rpy** — generuje stub soubory s `[COMFY-START/END]` markery
@@ -98,6 +99,11 @@ Místnost v herním světě. Pojmenované **exity** (výstupní porty) propojuje
 
 ### Event
 Událost/scéna vázaná na lokaci. Nastavíš trigger (`auto_enter`, `menu_choice`, `condition`), prerekvizitu (Python výraz), čas dne a prioritu.
+
+Sekce **Quest / Inventář (pro AI)** signalizuje AI, jakou quest/item akci má dialog zahrnout:
+- **Quest akce** — `comfy_quest_start` / `comfy_quest_advance` / žádná
+- **Quest ID** — ID questu pro danou akci
+- **Dá item** — ID itemu, který hráč obdrží (`comfy_give`)
 
 ### Item
 Předmět v herním světě. Nastav `location_id` na lokaci, kde ho lze sebrat — v exits menu lokace se automaticky přidá volba "Sebrat: {název}" hlídaná `comfy_has()`. Volitelně nastav **pickup_condition** (Python výraz) pro podmíněné sebrání, např. `comfy_quest_active("q1") and comfy_quest_stage("q1") >= 2`.

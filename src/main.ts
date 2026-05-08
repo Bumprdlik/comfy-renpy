@@ -18,7 +18,7 @@ import { initSearch } from './ui/search';
 import { initMinimap } from './ui/minimap';
 import { loadExportSnapshot } from './ui/dirtyTracker';
 import { openConfig, closeConfig, cfgOverlayClick, saveConfig, clearApiKey, onAiProviderChange } from './ui/modals/config';
-import { openGenerate, closeGenerate, genOverlayClick, copyGenPrompt, runGenerate, copyGenResult, writeGenResult } from './ui/modals/generate';
+import { openGenerate, closeGenerate, genOverlayClick, copyGenPrompt, runGenerate, copyGenResult, writeGenResult, batchGenerateDialogues, setBatchGenVisible } from './ui/modals/generate';
 import { openHelp, closeHelp, helpTab, helpOverlayClick, maybeShowHelp } from './ui/modals/help';
 import { validateGraph, closeVal, valOverlayClick } from './ui/modals/validate';
 import { previewRpy, closePreview, previewOverlayClick } from './ui/modals/preview';
@@ -189,6 +189,7 @@ window.runChecker         = runChecker;
 window.closeChecker       = closeChecker;
 window.checkerOverlayClick = checkerOverlayClick;
 window.checkerGoto        = checkerGoto;
+window.batchGenerateDialogues = batchGenerateDialogues;
 
 (async () => {
   try {
@@ -197,6 +198,7 @@ window.checkerGoto        = checkerGoto;
     const hasAi = (c.aiProvider === 'anthropic' && !!c.hasAnthropicKey)
                || (c.aiProvider === 'openai'    && !!c.hasOpenaiKey);
     setPanelHasKey(hasAi);
+    setBatchGenVisible(hasAi);
     if (!c.hasVsCode) {
       const btn = document.querySelector('button[onclick="openVsCode()"]') as HTMLElement | null;
       if (btn) btn.hidden = true;

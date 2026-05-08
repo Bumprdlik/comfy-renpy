@@ -84,6 +84,14 @@ export function renderPanel(node: LGraphNode): void {
     html += makeField('prop-priority', 'Priorita', 'number', p['priority']);
     html += makeField('prop-repeatable', 'Opakuje se', 'checkbox', p['repeatable']);
     html += makeField('prop-notes', 'Poznámky', 'textarea', p['notes']);
+    html += `<hr class="section-div"><div class="section-label">Quest / Inventář (pro AI)</div>`;
+    html += makeField('prop-quest-action', 'Quest akce', 'select', p['quest_action'] ?? 'none', { choices: [
+      { value: 'none',    label: 'žádná' },
+      { value: 'start',   label: 'comfy_quest_start' },
+      { value: 'advance', label: 'comfy_quest_advance' },
+    ]});
+    html += makeField('prop-quest-id',   'Quest ID', 'text', p['quest_id']);
+    html += makeField('prop-gives-item', 'Dá item (item ID)', 'text', p['gives_item']);
     html += makeField('prop-body', 'Default dialog (jen pro první export)', 'textarea', p['body_text'], { rows: 5, help: 'Volitelně: dialog zapsaný do .rpy při prvním exportu. Comfy-renpy body marker pak nikdy nepřepíše.' });
     html += `<button class="gen-btn" onclick="openGenerate(${node.id},${_hasAnthropicKey})">✨ Generovat dialog</button>`;
 
@@ -106,7 +114,7 @@ export function renderPanel(node: LGraphNode): void {
   } else if (node.type === 'renpy/quest') {
     html += makeField('prop-title',  'Název questu', 'text',     p['title']);
     html += makeField('prop-desc',   'Popis',         'textarea', p['description']);
-    html += makeField('prop-stages', 'Fáze (každá na řádku)', 'textarea', p['stages'], { rows: 6, help: 'Tip: přidej hint za | na každém řádku, např. "Promluvit s Elarou | Sedí v hospodě"' });
+    html += makeField('prop-stages', 'Fáze (každá na řádku)', 'textarea', p['stages'], { rows: 20, help: 'Tip: přidej hint za | na každém řádku, např. "Promluvit s Elarou | Sedí v hospodě"' });
   }
 
   propsBody.innerHTML = html;
@@ -164,6 +172,9 @@ function attachListeners(node: LGraphNode): void {
     bind('prop-priority',      'priority', v => parseInt(v) || 0);
     bind('prop-repeatable',    'repeatable');
     bind('prop-notes',         'notes');
+    bind('prop-quest-action',  'quest_action');
+    bind('prop-quest-id',      'quest_id');
+    bind('prop-gives-item',    'gives_item');
     bind('prop-body',          'body_text');
   } else if (node.type === 'renpy/item') {
     bind('prop-name',         'name');

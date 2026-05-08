@@ -19,6 +19,9 @@ export interface EventProps {
   priority: number;
   notes: string;
   body_text?: string;
+  quest_action?: 'none' | 'start' | 'advance';
+  quest_id?: string;
+  gives_item?: string;
 }
 
 export interface ItemProps {
