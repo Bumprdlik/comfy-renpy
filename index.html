@@ -256,6 +256,7 @@
             <div class="prop-row"><span class="prop-name">name</span><span class="prop-desc">Zobrazovaný název v menu lokace.</span></div>
             <div class="prop-row"><span class="prop-name">description</span><span class="prop-desc">Popis předmětu — vloží se jako dialog při sebrání.</span></div>
             <div class="prop-row"><span class="prop-name">location_id</span><span class="prop-desc">ID lokace, kde lze předmět sebrat.</span></div>
+            <div class="prop-row"><span class="prop-name">pickup_condition</span><span class="prop-desc">Volitelná Python podmínka pro sebrání (AND s <code>not comfy_has</code>), např. <code>comfy_quest_active("q1") and comfy_quest_stage("q1") >= 2</code>. Prázdné = vždy sebratelný.</span></div>
           </div>
         </div>
 
@@ -354,12 +355,11 @@ label location_kitchen:
         <div class="shortcut-row"><kbd>Ctrl + F</kbd><span>Vyhledat uzel</span></div>
 
         <h3>Toolbar</h3>
-        <div class="shortcut-row"><kbd>+ Location</kbd><span>Přidat nový Location uzel</span></div>
-        <div class="shortcut-row"><kbd>+ Event</kbd><span>Přidat nový Event uzel</span></div>
-        <div class="shortcut-row"><kbd>+ Item</kbd><span>Přidat nový Item uzel</span></div>
-        <div class="shortcut-row"><kbd>+ Character</kbd><span>Přidat nový Character uzel</span></div>
+        <div class="shortcut-row"><kbd>Přidat ▾</kbd><span>Dropdown — přidat Location, Event, Item, Character, Note, Quest nebo skupinu</span></div>
         <div class="shortcut-row"><kbd>Export .rpy</kbd><span>Vygenerovat / aktualizovat .rpy soubory</span></div>
-        <div class="shortcut-row"><kbd>Scan</kbd><span>Zkontrolovat stav .rpy souborů</span></div>
+        <div class="shortcut-row"><kbd>Kontroly ▾</kbd><span>Dropdown — Validace struktury / Stav .rpy souborů / Logika questů / Náhled .rpy</span></div>
+        <div class="shortcut-row"><kbd>Logika questů</kbd><span>Statická analýza + BFS simulátor — odhalí unreachable eventy, deadlocky itemů, neúplné questy</span></div>
+        <div class="shortcut-row"><kbd>Otevřít ▾</kbd><span>Dropdown — otevřít herní složku nebo VS Code</span></div>
         <div class="shortcut-row"><kbd>▶ Spustit</kbd><span>Spustit Ren'Py hru (vyžaduje nastavené renpy.exe)</span></div>
 
         <h3>Properties panel</h3>

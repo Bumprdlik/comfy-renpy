@@ -16,15 +16,18 @@ Navrhuješ místnosti, propojuješ je exity, přidáváš eventy, itemy a postav
 - **Auto-wire script.rpy** — export automaticky nastaví `label start:` na první lokaci grafu; defaultní Ren'Py boilerplate (Eileen) se nahradí bezpečně
 - **Hratelný skeleton** — první export vyplní popis lokace jako narátorskou řádku, hra je okamžitě hratelná; `body_text` property na Event/Item uzlu přednaplní dialog při prvním exportu
 - **AI → soubor** — vygenerovaný dialog lze zapsat přímo do .rpy tlačítkem "💾 Zapsat do souboru"
-- **Validace** grafu před exportem (duplicitní ID, chybějící vazby)
+- **Quest checker** — dvoustupňová analýza logiky: statická kontrola referencí + BFS simulátor dosažitelnosti odhalí unreachable eventy, deadlocky itemů a neúplné cesty questů
+- **Validace struktury** grafu před exportem (duplicitní ID, chybějící vazby)
 - **Export do .rpy** — generuje stub soubory s `[COMFY-START/END]` markery
 - **Preview** — náhled vygenerovaného `.rpy` bez zápisu na disk
 - **Round-trip bezpečný** — re-export přepíše jen strukturu, tvůj dialog zůstane
 - **Scan** — zobrazí stav každého uzlu (written / stub / missing / drift)
 - **Auto-layout** — rozmístí uzly do sekcí a automaticky vytvoří pojmenované skupiny
+- **Toolbar s dropdowny** — Přidat / Kontroly / Otevřít pro přehledný toolbar bez vizuálního šumu
 - **Compact mode** — přepínání toolbaru mezi ikonkami a textovými popisky (⊟/⊞)
 - **Auto-save** grafu každé 2 sekundy
 - **TypeScript + Vite** frontend s plnou typovou kontrolou
+- **Vitest test suite** — 41 testů pro checker a simulátor (`npm test`)
 
 ## Rychlý start
 
@@ -97,7 +100,7 @@ Místnost v herním světě. Pojmenované **exity** (výstupní porty) propojuje
 Událost/scéna vázaná na lokaci. Nastavíš trigger (`auto_enter`, `menu_choice`, `condition`), prerekvizitu (Python výraz), čas dne a prioritu.
 
 ### Item
-Předmět v herním světě. Slouží jako vizuální poznámka — lze ho propojit s eventem jako prerekvizitu.
+Předmět v herním světě. Nastav `location_id` na lokaci, kde ho lze sebrat — v exits menu lokace se automaticky přidá volba "Sebrat: {název}" hlídaná `comfy_has()`. Volitelně nastav **pickup_condition** (Python výraz) pro podmíněné sebrání, např. `comfy_quest_active("q1") and comfy_quest_stage("q1") >= 2`.
 
 ### Character
 Postava s hlasem/stylem (pro AI generování dialogů) a sprite ID.
@@ -141,9 +144,18 @@ label location_kitchen:
 
 Opakovaný export přepíše **jen** bloky mezi markery. Vše ostatní zůstane nedotčeno.
 
+## Quest checker
+
+Dropdown **Kontroly** → **Logika questů** spustí dvě fáze analýzy:
+
+1. **Statická analýza** — zkontroluje reference: prerekvizity odkazující na neexistující questy/itemy, questy bez start/advance eventu, stage čísla mimo rozsah, …
+2. **BFS simulátor** — projde všechny dosažitelné stavy hry (lokace × inventář × quest stages × seen eventy) a odhalí eventy které nikdy nemůžou nastat, itemy které nikdy nelze sebrat, questy bez cesty k dokončení.
+
+Checker zobrazí issues rozdělené na Statická analýza / Simulace stavů, každá s ikonkou závažnosti (chyba / varování / info) a tlačítkem → pro skok na uzel v grafu.
+
 ## Scan
 
-Tlačítko **Scan** zkontroluje stav každého uzlu a zobrazí barevný badge:
+Tlačítko **Stav .rpy souborů** (dropdown Kontroly) zkontroluje stav každého uzlu a zobrazí barevný badge:
 
 | Badge | Stav |
 |---|---|

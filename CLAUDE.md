@@ -16,9 +16,11 @@ Vizuální node-based editor pro návrh struktury Ren'Py her. Místnosti (Locati
 ## Spuštění
 
 ```bash
-npm run dev    # Express :3001 + Vite dev server :5173 (pro vývoj)
-npm run build  # Vite build → dist/
-npm start      # Jen Express :3001 (servíruje dist/)
+npm run dev        # Express :3001 + Vite dev server :5173 (pro vývoj)
+npm run build      # Vite build → dist/
+npm start          # Jen Express :3001 (servíruje dist/)
+npm test           # Vitest — single run
+npm run test:watch # Vitest — watch mód
 ```
 
 ## Klíčové soubory
@@ -32,8 +34,13 @@ npm start      # Jen Express :3001 (servíruje dist/)
 - `src/ui/autosave.ts` — auto-save logika (debounce 2s)
 - `src/ui/stats.ts` — počítadlo uzlů v toolbaru
 - `src/ui/panel.ts` — properties panel (render + event listenery + exit management)
-- `src/ui/toolbar.ts` — tlačítka toolbaru (addNode, exportRpy, scanFiles, autoLayout, …)
-- `src/ui/modals/` — config, help, validate, preview modály
+- `src/ui/toolbar.ts` — tlačítka toolbaru (addNode, exportRpy, scanFiles, autoLayout, runChecker, …)
+- `src/ui/dropdown.ts` — `initDropdown()` + `initDropdownGlobal()` pro click-to-open dropdowny v toolbaru
+- `src/ui/modals/` — config, help, validate, preview, checker modály
+- `src/ui/modals/checker.ts` — `openCheckerModal()`, `checkerGoto()`, renderování issues ze static + sim analýzy
+- `server-checker.js` — statická analýza grafu: `runStaticChecks(graphData)`, `extractComfyCalls()`, `extractStageConstraints()`
+- `server-simulator.js` — BFS simulátor dosažitelnosti: `runSimulation(graphData)`, `evalPrereq()`
+- `tests/` — Vitest test suite (41 testů): `checker.test.js`, `simulator.test.js`, `helpers.js`
 - `src/types.ts` — sdílené TypeScript typy (Props interfaces, API response typy)
 - `src/globals.d.ts` — ambient deklarace LiteGraph globálů + Window augmentace
 - `src/style.css` — CSS s custom properties (`--bg`, `--accent`, `--ok`, `--node-loc`, …)
@@ -56,6 +63,8 @@ npm start      # Jen Express :3001 (servíruje dist/)
 | POST | `/api/preview-rpy` | Vrátí preview `.rpy` obsahu pro konkrétní uzel (bez zápisu) |
 | GET | `/api/scan` | Zkontroluje stav `.rpy` souborů pro každý uzel v grafu |
 | POST | `/api/launch` | Spustí Ren'Py exe (detached) |
+| POST | `/api/check` | Statická analýza grafu — `runStaticChecks()` z `server-checker.js` |
+| POST | `/api/simulate` | BFS simulátor dosažitelnosti — `runSimulation()` z `server-simulator.js` |
 
 ## Node typy
 
@@ -63,7 +72,7 @@ npm start      # Jen Express :3001 (servíruje dist/)
 |---|---|---|---|
 | `renpy/location` | Modrá | inputs: blank (auto-expands) / outputs: dynamické exity | `id`, `label`, `description`, `exits[]`, `isStart` |
 | `renpy/event` | Oranžová | žádné | `id`, `location_id`, `trigger`, `trigger_label`, `prerequisite`, `time`, `repeatable`, `priority`, `notes`, `body_text?` |
-| `renpy/item` | Fialová | žádné | `id`, `name`, `description`, `body_text?` |
+| `renpy/item` | Fialová | žádné | `id`, `name`, `description`, `location_id`, `pickup_condition?`, `body_text?` |
 | `renpy/character` | Teal | žádné | `id`, `name`, `voice`, `sprite_id` |
 | `renpy/note` | Žlutohnědá | žádné | `text` (zobrazuje se přímo na uzlu, jen pro tvůrce) |
 | `renpy/quest` | Tmavě červená | žádné | `id`, `title`, `description`, `stages` (newline-separated, každý řádek volitelně `fáze | hint`) |
@@ -83,6 +92,15 @@ Exit lze označit jako obousměrný přes ↔ tlačítko v properties panelu. Bi
 - `returnName` property určuje název reverz-exitu generovaného při exportu
 
 Kabel barvy jsou registrovány v `LGraphCanvas.link_type_colors` (ne v `slot_types_default_color` — tu LiteGraph pro kabely nepoužívá). Dvojitý kabel = monkey-patch `LGraphCanvas.prototype.renderLink` s `num_sublines=2`.
+
+### Toolbar dropdowny
+
+Toolbar je organizován do tří click-to-open dropdownů + samostatných tlačítek:
+- **Přidat ▾** — 7 typů uzlů + Skupina, každá položka zobrazí klávesovou zkratku
+- **Kontroly ▾** — Validace struktury (`validateGraph`), Stav .rpy souborů (`scanFiles`), Logika questů (`runChecker`), Náhled .rpy (`previewRpy`)
+- **Otevřít ▾** — Herní složku, VS Code
+
+Infrastruktura: `src/ui/dropdown.ts` — `initDropdown(triggerId, panelId)` registruje toggle + vzájemné zavírání; `initDropdownGlobal()` registruje globální close-on-click-outside a Esc listener. Dropdown trigger tlačítka mají `.dropdown-trigger` třídu a `.dropdown-caret` span (vždy viditelný, i v compact módu).
 
 ### Toolbar compact mode
 
@@ -146,7 +164,7 @@ Export generuje hratelnou hru od prvního spuštění:
 - **kind=body** marker (mezi header a exits/footer) — první export vyplní popis lokace nebo placeholder dialog. Re-export body **nikdy nepřepíše** (je to lidský/AI prostor).
 - **body_text property** na Event a Item uzlu — volitelný obsah pro první export. Pokud je nastaven, nahradí placeholder při prvním zápisu body markeru. Re-export stejně nikdy nepřepíše.
 - **comfy_init.rpy** — `default comfy_inventory = []`, `comfy_quests_meta` dict, per-quest state helpery, `default {evtId}_seen = False` pro každý event, `define` pro každou postavu.
-- **Item pickup** — v exits menu lokace se přidají volby `"Sebrat: {name}" if not comfy_has("{id}"):` pro každý item s `location_id` shodujícím se s lokací.
+- **Item pickup** — v exits menu lokace se přidají volby `"Sebrat: {name}" if not comfy_has("{id}"):` pro každý item s `location_id` shodujícím se s lokací. Volba zobrazí jméno cílové lokace místo surového klíče. `pickup_condition` property přidá další Python podmínku (AND) — např. `comfy_quest_active("q1") and comfy_quest_stage("q1") >= 2`.
 
 ### Quest log UI
 
@@ -174,6 +192,50 @@ Export generuje `comfy_screens.rpy` (jen pokud neexistuje — emit-once, nikdy n
 ### AI write-to-file
 
 `POST /api/write-dialogue` — přijme `{ lgNodeId, content, graphData }`, najde soubor uzlu a zapíše `content` do `kind=body` markeru (smart insert: pokud body marker neexistuje, vloží ho před exits/footer). Frontend: tlačítko "💾 Zapsat do souboru" v generate modalu (zobrazí se po úspěšném AI generování).
+
+## Quest checker
+
+Tlačítko **Logika questů** (v dropdown Kontroly) spustí dvě fáze analýzy paralelně:
+
+### Statická analýza (`server-checker.js`)
+
+`runStaticChecks(graphData)` prochází uzly a detekuje:
+
+| Kód | Popis |
+|---|---|
+| `prereq-unknown-quest/item` | Prerekvizita odkazuje na neexistující quest/item |
+| `body-unknown-quest/item` | `body_text` volá `comfy_quest_*` / `comfy_give` pro neexistující quest/item |
+| `seen-flag-unknown-event` | Prerekvizita používá `{id}_seen`, ale event `{id}` neexistuje |
+| `quest-no-start` | Žádný event nespouští quest přes `comfy_quest_start` |
+| `quest-no-advance` | Quest má >1 fázi, ale žádný event ho neposouvá |
+| `quest-stage-out-of-range` | Prerekvizita testuje stage větší než počet fází |
+| `event-on-orphan-location` | Event je v lokaci bez jediné hrany |
+| `body-text-empty-with-stage-advance` | Event má quest prerekvizitu, ale prázdný `body_text` |
+
+### BFS simulátor (`server-simulator.js`)
+
+`runSimulation(graphData)` prochází stavový prostor (loc + inventory + quest stages + seen events) a detekuje:
+
+| Kód | Popis |
+|---|---|
+| `event-unreachable` | Event nelze spustit v žádném dosažitelném stavu |
+| `item-unpickable` | Item nelze sebrat (nedosažitelná lokace nebo `pickup_condition` nikdy nesplněna) |
+| `item-unpickable-but-required` | Totéž + item je vyžadován prerekvizitou → deadlock |
+| `quest-no-completion-path` | Quest nemá dosažitelnou cestu k dokončení |
+| `quest-stage-unreachable` | Konkrétní fáze questu je nedosažitelná |
+| `nondeterministic-prereq` | Prerekvizita obsahuje neznámou proměnnou (simulátor větvil oba výsledky) |
+| `state-explosion` | Dosažen limit `MAX_STATES = 50000`, výsledky neúplné |
+
+**Evalátor prerekvizit** (`evalPrereq(pyStr, state)`): light Python parser — podporuje `and`/`or`/`not`, závorky, `comfy_quest_active/stage/completed`, `comfy_has`, `{id}_seen`, `True`/`False`. Neznámé proměnné vrátí `null` → simulátor větví oba výsledky.
+
+**Bugfix**: `auto_enter` eventy na startovací lokaci se spouštějí před vložením počátečního stavu do BFS fronty (dřív se spouštěly jen při přesunu).
+
+### Testy
+
+`npm test` — 41 testů (Vitest):
+- `tests/checker.test.js` — `extractComfyCalls`, `extractStageConstraints`, všechny kódy `runStaticChecks`
+- `tests/simulator.test.js` — `evalPrereq` (13 případů), `runSimulation` (9 scénářů)
+- `tests/helpers.js` — factory funkce pro testovací grafová data
 
 ## Scan
 
