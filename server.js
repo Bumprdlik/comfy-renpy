@@ -415,7 +415,11 @@ app.post('/api/export-rpy', (req, res) => {
         created.push(`events/${evtId}.rpy`);
       } else {
         content = updateMarkerRegion(existing, evtId, 'header', headerLines.join('\n'));
-        // body is human/AI territory — never overwrite on re-export
+        if (p.body_text && String(p.body_text).trim()) {
+          // body_text explicitly set — write it (overwrite existing body section)
+          content = updateMarkerRegion(content, evtId, 'body', evtBodyContent);
+        }
+        // else: body is human/AI territory — never overwrite on re-export
         content = updateMarkerRegion(content,  evtId, 'footer', footerContent);
         updated.push(`events/${evtId}.rpy`);
       }

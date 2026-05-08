@@ -1,5 +1,6 @@
 import { graph } from '../../graph/state';
-import { apiGenerateDialogue, apiWriteDialogue } from '../../api';
+import { apiGenerateDialogue } from '../../api';
+import { scheduleSave } from '../autosave';
 
 const overlay    = document.getElementById('gen-overlay')   as HTMLElement;
 const titleEl    = document.getElementById('gen-title')     as HTMLElement;
@@ -130,24 +131,19 @@ export async function runGenerate(): Promise<void> {
   }
 }
 
-export async function writeGenResult(): Promise<void> {
+export function writeGenResult(): void {
   const content = resultPre.textContent ?? '';
   if (!content) return;
-  const writeBtn = document.getElementById('gen-write-btn') as HTMLButtonElement | null;
-  if (writeBtn) writeBtn.disabled = true;
-  statusEl.textContent = '⟳ Zapisuji…';
-  statusEl.style.color = '#aaa';
-  try {
-    const data = await apiWriteDialogue(_nodeId, content, graph.serialize());
-    if (!data.ok) throw new Error(data.error ?? 'Neznámá chyba');
-    statusEl.textContent = '✓ Zapsáno do souboru';
-    statusEl.style.color = '#2ecc71';
-  } catch (e) {
-    statusEl.textContent = '✗ ' + (e as Error).message;
+  const node = graph.getNodeById(_nodeId);
+  if (!node) {
+    statusEl.textContent = '✗ Uzel nenalezen';
     statusEl.style.color = '#e74c3c';
-  } finally {
-    if (writeBtn) writeBtn.disabled = false;
+    return;
   }
+  node.properties['body_text'] = content;
+  scheduleSave();
+  statusEl.textContent = '✓ Uloženo do body_text — zapíše se při exportu';
+  statusEl.style.color = '#2ecc71';
 }
 
 export async function copyGenResult(): Promise<void> {
