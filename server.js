@@ -650,6 +650,12 @@ app.get('/api/scan', (req, res) => {
       continue;
     }
 
+    // Quest and Item files are structural-only — no dialog needed, marker = written
+    if (node.type === 'renpy/quest' || node.type === 'renpy/item') {
+      nodeStatuses[id] = 'written';
+      continue;
+    }
+
     // written = has dialogue content beyond just "pass"
     const bodyLines = content
       .split('\n')
