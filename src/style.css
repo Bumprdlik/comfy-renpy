@@ -88,6 +88,9 @@ button:active { background: #222; }
 button.primary { background: var(--accent-dark); border-color: var(--accent); color: var(--accent-text); }
 button.primary:hover { background: var(--accent-hover); }
 
+button.launch-btn { background: #1a5c2a; border-color: #27ae60; color: #2ecc71; }
+button.launch-btn:hover { background: #27ae60; color: #fff; }
+
 .node-btn { border-left: 3px solid var(--border-input); padding-left: 7px; }
 .node-btn.loc { border-left-color: var(--node-loc); }
 .node-btn.evt { border-left-color: var(--node-evt); }
