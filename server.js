@@ -523,7 +523,38 @@ app.post('/api/export-rpy', (req, res) => {
 
   const note = null;
 
-  res.json({ ok: true, created, updated, errors, note });
+  // Wire up script.rpy to jump to start location
+  let scriptConflict = null;
+  const startLoc = pickStartLocation(graphData.nodes);
+  if (startLoc) {
+    const scriptFile = path.join(gameDir, 'script.rpy');
+    const startLabel = `label start:\n    jump location_${startLoc.properties.id}`;
+    try {
+      if (!fs.existsSync(scriptFile)) {
+        fs.writeFileSync(scriptFile, markerBlock('__comfy__', 'start', startLabel) + '\n', 'utf8');
+        created.push('script.rpy');
+      } else {
+        const existing = fs.readFileSync(scriptFile, 'utf8');
+        const hasMarker = /# \[COMFY-START id=__comfy__ kind=start\]/.test(existing);
+        const isDefault = !hasMarker
+          && /You've created a new Ren'Py game\./.test(existing)
+          && /define e = Character\("Eileen"\)/.test(existing);
+        if (hasMarker) {
+          fs.writeFileSync(scriptFile, updateMarkerRegion(existing, '__comfy__', 'start', startLabel), 'utf8');
+          updated.push('script.rpy');
+        } else if (isDefault) {
+          fs.writeFileSync(scriptFile, markerBlock('__comfy__', 'start', startLabel) + '\n', 'utf8');
+          updated.push('script.rpy');
+        } else {
+          scriptConflict = { startId: startLoc.properties.id, existingPreview: existing.slice(0, 500) };
+        }
+      }
+    } catch (e) {
+      errors.push(`script.rpy: ${e.message}`);
+    }
+  }
+
+  res.json({ ok: true, created, updated, errors, note, scriptConflict });
 });
 
 // POST /api/write-dialogue — write AI-generated content into kind=body marker
@@ -708,6 +739,12 @@ app.post('/api/validate', (req, res) => {
     }
   }
 
+  const startLocs = nodes.filter(n => n.type === 'renpy/location' && n.properties?.isStart);
+  if (startLocs.length > 1) {
+    const ids = startLocs.map(n => n.properties.id).join(', ');
+    warnings.push(`Více lokací označeno jako Start (${ids}) — bude použita první.`);
+  }
+
   res.json({ errors, warnings, ok: errors.length === 0 });
 });
 
@@ -886,7 +923,37 @@ app.post('/api/launch', (req, res) => {
   }, 600);
 });
 
+// POST /api/wire-script — manually wire script.rpy after conflict
+app.post('/api/wire-script', (req, res) => {
+  const { mode, startId } = req.body;
+  if (!startId) return res.status(400).json({ ok: false, error: 'Chybí startId' });
+  const gameDir = config.gameDir || projectDir;
+  const scriptFile = path.join(gameDir, 'script.rpy');
+  const startLabel = `label start:\n    jump location_${startId}`;
+  try {
+    if (mode === 'overwrite') {
+      fs.writeFileSync(scriptFile, markerBlock('__comfy__', 'start', startLabel) + '\n', 'utf8');
+    } else if (mode === 'append') {
+      const existing = fs.existsSync(scriptFile) ? fs.readFileSync(scriptFile, 'utf8') : '';
+      const comment = `# Přidej do svého label start: jump location_${startId}\n`;
+      fs.writeFileSync(scriptFile,
+        existing.trimEnd() + '\n\n' + comment + markerBlock('__comfy__', 'start', startLabel) + '\n',
+        'utf8');
+    } else {
+      return res.status(400).json({ ok: false, error: 'Neznámý mode' });
+    }
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 // ── Helpers ──
+
+function pickStartLocation(nodes) {
+  const locs = (nodes || []).filter(n => n.type === 'renpy/location' && n.properties?.id);
+  return locs.find(n => n.properties.isStart) || locs[0] || null;
+}
 
 function markerBlock(id, kind, content) {
   return `# [COMFY-START id=${id} kind=${kind}]\n${content}\n# [COMFY-END]`;

@@ -3,6 +3,7 @@ import { scheduleSave, saveGraph, setLastSavedJson, statusEl } from './autosave'
 import { saveExportSnapshot } from './dirtyTracker';
 import { apiExportRpy, apiScan, apiLaunch, apiValidate, apiOpenGameDir, apiOpenVsCode } from '../api';
 import { showValModal } from './modals/validate';
+import { openScriptConflictModal } from './modals/script-conflict';
 import { updateStats } from './stats';
 
 const canvasEl = document.getElementById('graph-canvas') as HTMLCanvasElement;
@@ -79,6 +80,7 @@ export async function doExport(): Promise<void> {
     graph.setDirtyCanvas(true, true);
     if (data.note) alert('ℹ ' + data.note);
     if (data.errors?.length) alert('Chyby při exportu:\n' + data.errors.join('\n'));
+    if (data.scriptConflict) openScriptConflictModal(data.scriptConflict);
   } catch (e) {
     statusEl.textContent = '✗ export chyba';
     statusEl.style.color = '#e74c3c';

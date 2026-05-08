@@ -4,6 +4,7 @@ export interface LocationProps {
   label: string;
   description: string;
   exits: Array<{ name: string; bidir?: boolean; returnName?: string }>;
+  isStart?: boolean;
 }
 
 export interface EventProps {
@@ -57,6 +58,11 @@ export interface ValidationResult {
   warnings: string[];
 }
 
+export interface ScriptConflict {
+  startId: string;
+  existingPreview: string;
+}
+
 export interface ExportResult {
   ok: boolean;
   created: string[];
@@ -65,6 +71,7 @@ export interface ExportResult {
   note?: string;
   error?: string;
   message?: string;
+  scriptConflict?: ScriptConflict | null;
 }
 
 export interface PreviewResult {

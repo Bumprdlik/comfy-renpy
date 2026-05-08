@@ -360,6 +360,21 @@ label location_kitchen:
   </div>
 </div>
 
+<!-- Script conflict modal -->
+<div id="sc-overlay" class="modal-overlay" onclick="scOverlayClick(event)">
+  <div id="sc-modal">
+    <h2>⚠ script.rpy je upravený</h2>
+    <p>Soubor <code>script.rpy</code> obsahuje vlastní obsah bez COMFY markeru. Jak chceš pokračovat?</p>
+    <pre id="sc-preview"></pre>
+    <p id="sc-hint" style="font-size:11px;color:#7f8c8d;margin:.4em 0 1em;font-family:monospace"></p>
+    <div class="sc-actions">
+      <button class="sc-btn-overwrite" onclick="wireScript('overwrite')">Přepsat script.rpy</button>
+      <button class="sc-btn-append"   onclick="wireScript('append')">Appendnout marker</button>
+      <button onclick="closeScriptConflict()">Nechat být</button>
+    </div>
+  </div>
+</div>
+
 <!-- Preview modal -->
 <div id="preview-overlay" onclick="previewOverlayClick(event)">
   <div id="preview-modal">

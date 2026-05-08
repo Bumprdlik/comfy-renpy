@@ -22,6 +22,7 @@ import { openGenerate, closeGenerate, genOverlayClick, copyGenPrompt, runGenerat
 import { openHelp, closeHelp, helpTab, helpOverlayClick, maybeShowHelp } from './ui/modals/help';
 import { validateGraph, closeVal, valOverlayClick } from './ui/modals/validate';
 import { previewRpy, closePreview, previewOverlayClick } from './ui/modals/preview';
+import { closeScriptConflict, scOverlayClick, wireScript } from './ui/modals/script-conflict';
 
 LiteGraph.NODE_TITLE_HEIGHT = 22;
 LiteGraph.NODE_SLOT_HEIGHT = 20;
@@ -164,6 +165,9 @@ window.closeVal         = closeVal;
 window.valOverlayClick  = valOverlayClick;
 window.closePreview     = closePreview;
 window.previewOverlayClick = previewOverlayClick;
+window.closeScriptConflict = closeScriptConflict;
+window.scOverlayClick   = scOverlayClick;
+window.wireScript       = wireScript;
 window.updateExit       = updateExit;
 window.updateExitReturn = updateExitReturn;
 window.toggleExitBidir  = toggleExitBidir;

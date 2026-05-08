@@ -1,4 +1,4 @@
-import { getSelectedNode, setSelectedNode } from '../graph/state';
+import { getSelectedNode, setSelectedNode, graph } from '../graph/state';
 import { scheduleSave } from './autosave';
 import { escHtml } from '../graph/helpers';
 import type { LocationNode } from '../graph/nodes/LocationNode';
@@ -47,6 +47,7 @@ export function renderPanel(node: LGraphNode): void {
   if (node.type === 'renpy/location') {
     html += makeField('prop-label', 'Název', 'text', p['label']);
     html += makeField('prop-desc', 'Popis', 'textarea', p['description']);
+    html += makeField('prop-isstart', '🏁 Start lokace', 'checkbox', p['isStart']);
     html += `<hr class="section-div"><div class="section-label">Východy (exits)</div>`;
     html += `<div id="exits-list">`;
     const exits = (p['exits'] as import('../types').LocationProps['exits']) || [];
@@ -134,6 +135,22 @@ function attachListeners(node: LGraphNode): void {
   if (node.type === 'renpy/location') {
     bind('prop-label', 'label');
     bind('prop-desc',  'description');
+    const startEl = document.getElementById('prop-isstart') as HTMLInputElement | null;
+    if (startEl) {
+      startEl.addEventListener('change', () => {
+        if (startEl.checked) {
+          for (const n of graph._nodes) {
+            if (n !== node && n.type === 'renpy/location' && n.properties['isStart']) {
+              n.properties['isStart'] = false;
+              n.setDirtyCanvas(true);
+            }
+          }
+        }
+        node.properties['isStart'] = startEl.checked;
+        node.setDirtyCanvas(true, true);
+        scheduleSave();
+      });
+    }
   } else if (node.type === 'renpy/event') {
     bind('prop-location',      'location_id');
     bind('prop-trigger',       'trigger');

@@ -116,6 +116,15 @@ export async function apiBrowseFolder(initial?: string): Promise<string | null> 
   return d.path;
 }
 
+export async function apiWireScript(mode: 'overwrite' | 'append', startId: string): Promise<{ ok: boolean; error?: string }> {
+  const r = await fetch('/api/wire-script', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mode, startId }),
+  });
+  return r.json() as Promise<{ ok: boolean; error?: string }>;
+}
+
 export async function apiBrowseExe(initial?: string): Promise<string | null> {
   const r = await fetch('/api/browse-exe', {
     method: 'POST',

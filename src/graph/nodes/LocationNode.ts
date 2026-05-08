@@ -14,6 +14,7 @@ export class LocationNode extends LiteGraph.LGraphNode {
       label: 'New Location',
       description: '',
       exits: [{ name: 'exit' }],
+      isStart: false,
     };
     this.color   = '#1a4f72';
     this.bgcolor = '#0d2d42';

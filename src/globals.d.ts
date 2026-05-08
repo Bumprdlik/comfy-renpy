@@ -136,4 +136,7 @@ interface Window {
   openGameDir(): Promise<void>;
   openVsCode(): Promise<void>;
   toggleCompact(): void;
+  closeScriptConflict(): void;
+  scOverlayClick(e: MouseEvent): void;
+  wireScript(mode: string): Promise<void>;
 }
