@@ -15,7 +15,7 @@
 
   <!-- Přidat dropdown -->
   <div class="dropdown-wrap">
-    <button id="add-btn" class="node-btn loc"><span class="btn-icon">＋▾</span><span class="btn-label">Přidat</span></button>
+    <button id="add-btn" class="node-btn loc dropdown-trigger"><span class="btn-icon">＋</span><span class="btn-label">Přidat</span><span class="dropdown-caret">▾</span></button>
     <div id="add-panel" class="dropdown-panel">
       <button onclick="addNode('renpy/location')">📍 Location <span class="kbd">L</span></button>
       <button onclick="addNode('renpy/event')">⚡ Event <span class="kbd">E</span></button>
@@ -34,7 +34,7 @@
 
   <!-- Kontroly dropdown -->
   <div class="dropdown-wrap">
-    <button id="check-btn"><span class="btn-icon">🔍▾</span><span class="btn-label">Kontroly</span></button>
+    <button id="check-btn" class="dropdown-trigger"><span class="btn-icon">🔍</span><span class="btn-label">Kontroly</span><span class="dropdown-caret">▾</span></button>
     <div id="check-panel" class="dropdown-panel">
       <button onclick="validateGraph()" title="Strukturální validace: duplicitní ID, chybějící propojení">✅ Validace struktury</button>
       <button onclick="scanFiles()" title="Stav .rpy souborů na disku: missing/stub/written/drift">📁 Stav .rpy souborů</button>
@@ -46,7 +46,7 @@
 
   <!-- Otevřít dropdown -->
   <div class="dropdown-wrap">
-    <button id="open-btn"><span class="btn-icon">📂▾</span><span class="btn-label">Otevřít</span></button>
+    <button id="open-btn" class="dropdown-trigger"><span class="btn-icon">📂</span><span class="btn-label">Otevřít</span><span class="dropdown-caret">▾</span></button>
     <div id="open-panel" class="dropdown-panel">
       <button onclick="openGameDir()">📂 Herní složku</button>
       <button onclick="openVsCode()">💻 VS Code</button>
