@@ -120,7 +120,7 @@
         "trigger": "auto_enter",
         "trigger_label": "",
         "prerequisite": "comfy_quest_active(\"tajemstvi_lesa\") and comfy_quest_stage(\"tajemstvi_lesa\") == 1",
-        "time": "night",
+        "time": "any",
         "repeatable": false,
         "priority": 10,
         "notes": "Setkání s tajemným stínem. Spustí se jen při první noční návštěvě lesa po rozhovoru s Elarou.",
