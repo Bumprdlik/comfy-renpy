@@ -18,6 +18,7 @@ export interface EventProps {
   repeatable: boolean;
   priority: number;
   notes: string;
+  body_text?: string;
 }
 
 export interface ItemProps {
@@ -26,6 +27,7 @@ export interface ItemProps {
   name: string;
   description: string;
   location_id: string;
+  body_text?: string;
 }
 
 export interface CharacterProps {

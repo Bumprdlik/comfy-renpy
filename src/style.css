@@ -164,6 +164,7 @@ button.primary:hover { background: var(--accent-hover); }
 
 /* ── Form fields ── */
 .field { margin-bottom: 10px; }
+.field-help { font-size: 11px; color: #7f8c8d; margin-top: 3px; line-height: 1.4; }
 .field label {
   display: block;
   font-size: 10px;

@@ -12,8 +12,9 @@ Navrhuješ místnosti, propojuješ je exity, přidáváš eventy, itemy a postav
 - **6 typů uzlů**: Location, Event, Item, Character, Note, Quest
 - **Obousměrné exity** — kabel ↔ se vykreslí jako dvojitá teal čára, reverzní exit se vygeneruje při exportu
 - **Inventář** — Item uzly generují pickup labely, lokace dostanou volby "Sebrat" v menu, `comfy_init.rpy` obsahuje `comfy_has()` / `comfy_give()` helpery
+- **Quest log UI** — export vygeneruje `comfy_screens.rpy` s tlačítkem "Questy N" vpravo nahoře a modálním panelem s aktivními questy (hinty) a dokončenými; soubor je jen tvůj, nikdy se nepřepíše
 - **Auto-wire script.rpy** — export automaticky nastaví `label start:` na první lokaci grafu; defaultní Ren'Py boilerplate (Eileen) se nahradí bezpečně
-- **Hratelný skeleton** — první export vyplní popis lokace jako narátorskou řádku, hra je okamžitě hratelná
+- **Hratelný skeleton** — první export vyplní popis lokace jako narátorskou řádku, hra je okamžitě hratelná; `body_text` property na Event/Item uzlu přednaplní dialog při prvním exportu
 - **AI → soubor** — vygenerovaný dialog lze zapsat přímo do .rpy tlačítkem "💾 Zapsat do souboru"
 - **Validace** grafu před exportem (duplicitní ID, chybějící vazby)
 - **Export do .rpy** — generuje stub soubory s `[COMFY-START/END]` markery
@@ -105,7 +106,14 @@ Postava s hlasem/stylem (pro AI generování dialogů) a sprite ID.
 Volná textová poznámka přímo na canvasu. Exportem ani scanem není dotčena.
 
 ### Quest
-Quest / úkol s fázemi. Generuje `.rpy` do `{gameDir}/quests/` s proměnnými `{id}_active` a `{id}_stage` pro sledování postupu hráče.
+Quest / úkol s fázemi. Generuje `.rpy` do `{gameDir}/quests/` s proměnnými `{id}_active`, `{id}_stage` a `{id}_completed`. Každá fáze ve `stages` textareu může mít hint ve formátu `text fáze | hint pro hráče`.
+
+**Quest helpery** (z `comfy_init.rpy`):
+- `comfy_quest_start("id")` — aktivuje quest
+- `comfy_quest_advance("id")` — posune fázi; po poslední fázi označí jako dokončený
+- `comfy_quest_active("id")` / `comfy_quest_completed("id")` — bool stav
+
+**Quest log UI** — po exportu obsahuje hra obrazovku `comfy_quest_log` dostupnou přes tlačítko "Questy N" vpravo nahoře. Styling a pozici lze upravit přímo v `comfy_screens.rpy`.
 
 ## Export a round-trip
 

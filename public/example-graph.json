@@ -1,5 +1,5 @@
 {
-  "last_node_id": 14,
+  "last_node_id": 16,
   "last_link_id": 6,
   "nodes": [
     {
@@ -119,11 +119,12 @@
         "location_id": "les",
         "trigger": "auto_enter",
         "trigger_label": "",
-        "prerequisite": "",
+        "prerequisite": "comfy_quest_active(\"tajemstvi_lesa\") and comfy_quest_stage(\"tajemstvi_lesa\") == 1",
         "time": "night",
         "repeatable": false,
         "priority": 10,
-        "notes": "Setkání s tajemným stínem. Spustí se jen při první noční návštěvě lesa."
+        "notes": "Setkání s tajemným stínem. Spustí se jen při první noční návštěvě lesa po rozhovoru s Elarou.",
+        "body_text": "\"Vstoupíš do tmy. Větve se pohybují, ačkoli není vítr.\"\n\"Uprostřed lesa uvidíš kamenný sloup — na jeho vrcholu svítí slabé světlo.\"\n\"Z tmy se ozve hlas: \\\"Hledáš to, co je ztraceno. Začni u kamene.\\\"\"\n$ comfy_quest_advance(\"tajemstvi_lesa\")"
       }
     },
     {
@@ -143,7 +144,8 @@
         "time": "any",
         "repeatable": false,
         "priority": 5,
-        "notes": "Elara odhalí, proč přišla do Křivákova a co hledá v lese."
+        "notes": "Elara odhalí, proč přišla do Křivákova a co hledá v lese. Spustí quest.",
+        "body_text": "elara \"Přišla jsem z dáleka. Hledám starý zakletý kámen v lese za vesnicí.\"\nelara \"Říká se, že na něm je mapa — vedoucí k elfskému pokladu skrytému v hlubině.\"\nelara \"Sama se ale lesa bojím. Pomůžeš mi?\"\nmenu:\n    \"Ano, rád pomůžu.\":\n        elara \"Děkuji. Jdi do lesa za soumraku, stín ti ukáže cestu.\"\n        $ comfy_quest_start(\"tajemstvi_lesa\")\n    \"Ještě nevím.\":\n        elara \"Pochopím. Budu tu, když se rozhodneš.\"\n        return"
       }
     },
     {
@@ -206,7 +208,8 @@
         "id": "stara_mapa",
         "name": "Stará mapa",
         "description": "Roztrhaná mapa s vyznačeným místem hluboko v lese. Rukopis je elfský.",
-        "location_id": "les"
+        "location_id": "les",
+        "body_text": "\"U paty kamenného sloupu leží roztrhaná mapa.\"\n\"Rukopis je elfský — nedokážeš ho přečíst, ale obrázek ti napovídá.\"\n$ comfy_give(\"stara_mapa\")\nif comfy_quest_active(\"tajemstvi_lesa\") and comfy_quest_stage(\"tajemstvi_lesa\") == 2:\n    \"Tohle musí být ta mapa, o které mluvila Elara!\"\n    $ comfy_quest_advance(\"tajemstvi_lesa\")"
       }
     },
     {
@@ -240,18 +243,60 @@
       }
     },
     {
+      "id": 15,
+      "type": "renpy/event",
+      "pos": [530, 600],
+      "size": [210, 60],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "properties": {
+        "id": "pavel_mapa",
+        "location_id": "kovarna",
+        "trigger": "menu_choice",
+        "trigger_label": "Ukázat starou mapu Pavlovi",
+        "prerequisite": "comfy_has(\"stara_mapa\") and comfy_quest_active(\"tajemstvi_lesa\") and comfy_quest_stage(\"tajemstvi_lesa\") == 3",
+        "time": "any",
+        "repeatable": false,
+        "priority": 8,
+        "notes": "Pavel přeloží elfský rukopis na mapě a quest posune dál.",
+        "body_text": "mistr_pavel \"Co to máš? Kdo ti to dal?\"\nmistr_pavel \"Tohle je elfské písmo. Umím ho trochu přečíst, otec mě učil.\"\nmistr_pavel \"Zde je vyznačeno... místo u staré lípy za potokem. Chodilo se tam prý před staletími.\"\nmistr_pavel \"Vrať se k té cizince. Tohle patří jí.\"\n$ comfy_quest_advance(\"tajemstvi_lesa\")"
+      }
+    },
+    {
+      "id": 16,
+      "type": "renpy/event",
+      "pos": [530, 500],
+      "size": [210, 60],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "properties": {
+        "id": "elara_zaver",
+        "location_id": "hospoda",
+        "trigger": "menu_choice",
+        "trigger_label": "Říct Elaře, co jsem zjistil",
+        "prerequisite": "comfy_quest_active(\"tajemstvi_lesa\") and comfy_quest_stage(\"tajemstvi_lesa\") == 4",
+        "time": "any",
+        "repeatable": false,
+        "priority": 9,
+        "notes": "Závěrečný rozhovor s Elarou. Dokončí quest.",
+        "body_text": "elara \"Vrátil ses! Co jsi zjistil?\"\n\"Vyprávíš jí o stínu v lese, o kamenném sloupu a o Pavlově překladu.\"\nelara \"Stará lípa za potokem... Vím, kde to je.\"\nelara \"Děkuji ti. Tohle pro mě znamená víc, než si dokážeš představit.\"\nelara \"Quest je dokončen — hra ti to ukáže v quest logu vpravo nahoře.\"\n$ comfy_quest_advance(\"tajemstvi_lesa\")"
+      }
+    },
+    {
       "id": 14,
       "type": "renpy/quest",
       "pos": [840, 640],
       "size": [220, 55],
       "flags": {},
-      "order": 13,
+      "order": 15,
       "mode": 0,
       "properties": {
         "id": "tajemstvi_lesa",
         "title": "Tajemství zakletého lesa",
         "description": "Elara prosí o pomoc s odhalením starého kouzla v lese za vesnicí.",
-        "stages": "Promluvit s Elarou v hospodě\nProzkoumat les v noci\nNajít starou mapu\nOdnést mapu Pavlovi do kovárny\nVrátit se k Elaře s odpovědí"
+        "stages": "Promluvit s Elarou v hospodě | Cizinka sedí v hospodě U Dvou Štítů na náměstí\nProzkoumat les v noci | Vejdi do zakletého lesa, ale počkej až padne noc\nNajít starou mapu | Podívej se k patě kamenného sloupu v lese\nOdnést mapu Pavlovi do kovárny | Mistr Pavel pracuje v kovárně jižně od náměstí\nVrátit se k Elaře s odpovědí | Elara čeká v hospodě U Dvou Štítů"
       }
     }
   ],

@@ -18,10 +18,11 @@ const TYPE_NAMES: Record<string, string> = {
   'renpy/quest':     'Quest',
 };
 
-function makeField(id: string, label: string, type: string, value: unknown, opts: { choices?: Array<{value: string; label: string}>; rows?: number } = {}): string {
+function makeField(id: string, label: string, type: string, value: unknown, opts: { choices?: Array<{value: string; label: string}>; rows?: number; help?: string } = {}): string {
   if (type === 'textarea') {
+    const helpHtml = opts.help ? `<div class="field-help">${escHtml(opts.help)}</div>` : '';
     return `<div class="field"><label for="${id}">${label}</label>` +
-      `<textarea id="${id}" rows="${opts.rows ?? 3}">${escHtml(value ?? '')}</textarea></div>`;
+      `<textarea id="${id}" rows="${opts.rows ?? 3}">${escHtml(value ?? '')}</textarea>${helpHtml}</div>`;
   }
   if (type === 'select') {
     const options = (opts.choices ?? []).map(c =>
@@ -83,12 +84,14 @@ export function renderPanel(node: LGraphNode): void {
     html += makeField('prop-priority', 'Priorita', 'number', p['priority']);
     html += makeField('prop-repeatable', 'Opakuje se', 'checkbox', p['repeatable']);
     html += makeField('prop-notes', 'Poznámky', 'textarea', p['notes']);
+    html += makeField('prop-body', 'Default dialog (jen pro první export)', 'textarea', p['body_text'], { rows: 5, help: 'Volitelně: dialog zapsaný do .rpy při prvním exportu. Comfy-renpy body marker pak nikdy nepřepíše.' });
     html += `<button class="gen-btn" onclick="openGenerate(${node.id},${_hasAnthropicKey})">✨ Generovat dialog</button>`;
 
   } else if (node.type === 'renpy/item') {
     html += makeField('prop-name',     'Název',              'text',     p['name']);
     html += makeField('prop-desc',     'Popis',              'textarea', p['description']);
     html += makeField('prop-location', 'Lokace (location_id)', 'text',   p['location_id']);
+    html += makeField('prop-body', 'Default dialog (jen pro první export)', 'textarea', p['body_text'], { rows: 5, help: 'Volitelně: dialog zapsaný do .rpy při prvním exportu. Comfy-renpy body marker pak nikdy nepřepíše.' });
 
   } else if (node.type === 'renpy/character') {
     html += makeField('prop-name',     'Jméno',                'text',     p['name']);
@@ -102,7 +105,7 @@ export function renderPanel(node: LGraphNode): void {
   } else if (node.type === 'renpy/quest') {
     html += makeField('prop-title',  'Název questu', 'text',     p['title']);
     html += makeField('prop-desc',   'Popis',         'textarea', p['description']);
-    html += makeField('prop-stages', 'Fáze (každá na řádku)', 'textarea', p['stages'], { rows: 6 });
+    html += makeField('prop-stages', 'Fáze (každá na řádku)', 'textarea', p['stages'], { rows: 6, help: 'Tip: přidej hint za | na každém řádku, např. "Promluvit s Elarou | Sedí v hospodě"' });
   }
 
   propsBody.innerHTML = html;
@@ -160,10 +163,12 @@ function attachListeners(node: LGraphNode): void {
     bind('prop-priority',      'priority', v => parseInt(v) || 0);
     bind('prop-repeatable',    'repeatable');
     bind('prop-notes',         'notes');
+    bind('prop-body',          'body_text');
   } else if (node.type === 'renpy/item') {
     bind('prop-name',     'name');
     bind('prop-desc',     'description');
     bind('prop-location', 'location_id');
+    bind('prop-body',     'body_text');
   } else if (node.type === 'renpy/character') {
     bind('prop-name',     'name');
     bind('prop-location', 'location_id');

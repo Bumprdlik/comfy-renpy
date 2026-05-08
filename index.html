@@ -165,7 +165,7 @@
             <div class="help-step-num">5</div>
             <div class="help-step-body">
               <strong>Exportuj — hra je okamžitě hratelná</strong>
-              <p>Tlačítko <strong>Export .rpy</strong> vygeneruje kostry souborů. První export vyplní popis lokace a placeholder dialog — hru lze ihned spustit a procházet. Dialogy piš v IDE v sekci <code>kind=body</code> nebo je vygeneruj pomocí AI (tlačítko ✨ v properties panelu).</p>
+              <p>Tlačítko <strong>Export .rpy</strong> vygeneruje kostry souborů. První export vyplní popis lokace a placeholder dialog — hru lze ihned spustit a procházet. Pokud máš Quest uzly, export vytvoří <code>comfy_screens.rpy</code> s tlačítkem <strong>Questy N</strong> vpravo nahoře — quest log zobrazí aktivní úkoly s hinty a dokončené questy. Dialogy piš v IDE v sekci <code>kind=body</code> nebo je vygeneruj pomocí AI (tlačítko ✨ v properties panelu).</p>
             </div>
           </li>
           <li>
@@ -253,7 +253,7 @@
             <div class="prop-row"><span class="prop-name">id</span><span class="prop-desc">Unikátní identifikátor questu — použije se jako prefix proměnných (<code>{id}_active</code>, <code>{id}_stage</code>).</span></div>
             <div class="prop-row"><span class="prop-name">title</span><span class="prop-desc">Zobrazovaný název questu.</span></div>
             <div class="prop-row"><span class="prop-name">description</span><span class="prop-desc">Popis questu pro tvůrce.</span></div>
-            <div class="prop-row"><span class="prop-name">stages</span><span class="prop-desc">Seznam fází — každá fáze na samostatném řádku. Exportují se jako číslované komentáře a hodnoty <code>{id}_stage</code>.</span></div>
+            <div class="prop-row"><span class="prop-name">stages</span><span class="prop-desc">Seznam fází — každá fáze na samostatném řádku. Volitelně přidej hint za <code>|</code>, např. <em>Promluvit s Elarou | Sedí v hospodě</em>. Hint se zobrazí v quest logu ve hře.</span></div>
           </div>
         </div>
 

@@ -350,14 +350,18 @@ app.post('/api/export-rpy', (req, res) => {
       headerLines.push(`        return`);
     }
 
-    // footer: jump back to location or return
-    const footerContent = p.location_id
-      ? `    jump location_${p.location_id}`
-      : '    return';
+    // footer: mark event seen, then jump back to location or return
+    const footerJump = p.location_id ? `    jump location_${p.location_id}` : '    return';
+    const footerContent = `    $ ${evtId}_seen = True\n${footerJump}`;
 
-    // body: placeholder trigger label (only on first export)
-    const trigLabel = (p.trigger_label || p.trigger || evtId).replace(/"/g, '\\"');
-    const evtBodyContent = `    "… ${trigLabel} …"  # nahraď vlastním dialogem`;
+    // body: body_text override (only written on first export — body is human/AI territory)
+    let evtBodyContent;
+    if (p.body_text && String(p.body_text).trim()) {
+      evtBodyContent = String(p.body_text).split('\n').map(l => '    ' + l).join('\n');
+    } else {
+      const trigLabel = (p.trigger_label || p.trigger || evtId).replace(/"/g, '\\"');
+      evtBodyContent = `    "… ${trigLabel} …"  # nahraď vlastním dialogem`;
+    }
 
     try {
       const existing = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : null;
@@ -395,13 +399,14 @@ app.post('/api/export-rpy', (req, res) => {
     const filePath = path.join(questDir, `${questId}.rpy`);
     try { fs.mkdirSync(questDir, { recursive: true }); } catch (_e) {}
 
-    const stages = (p.stages || '').split('\n').map(s => s.trim()).filter(Boolean);
+    const stages = parseStages(p.stages);
     const headerLines = [
       `# Quest: ${p.title || questId}`,
       ...(p.description ? [`# ${p.description}`] : []),
       `default ${questId}_active = False`,
       `default ${questId}_stage = 0`,
-      ...(stages.length ? ['# Fáze:', ...stages.map((s, i) => `#   ${i}: ${s}`)] : []),
+      `default ${questId}_completed = False`,
+      ...(stages.length ? ['# Fáze:', ...stages.map((s, i) => `#   ${i}: ${s.text}${s.hint ? ` | ${s.hint}` : ''}`)] : []),
     ].join('\n');
 
     try {
@@ -438,11 +443,16 @@ app.post('/api/export-rpy', (req, res) => {
     const itemName = (p.name || itemId).replace(/"/g, '\\"');
     const itemDesc = (p.description || '').trim().replace(/"/g, '\\"');
     const itemHeaderContent = `label item_${itemId}:`;
-    const itemBodyLines = [
-      `    "Sebral jsi: ${itemName}."`,
-      ...(itemDesc ? [`    "${itemDesc}"`] : []),
-      `    $ comfy_give("${itemId}")`,
-    ];
+    let itemBodyLines;
+    if (p.body_text && String(p.body_text).trim()) {
+      itemBodyLines = String(p.body_text).split('\n').map(l => '    ' + l);
+    } else {
+      itemBodyLines = [
+        `    "Sebral jsi: ${itemName}."`,
+        ...(itemDesc ? [`    "${itemDesc}"`] : []),
+        `    $ comfy_give("${itemId}")`,
+      ];
+    }
     const itemFooterContent = '    return';
 
     try {
@@ -474,7 +484,6 @@ app.post('/api/export-rpy', (req, res) => {
   const allChars = Object.values(nodeById).filter(n => n.type === 'renpy/character').map(n => n.properties);
   const initContent = [
     'default comfy_inventory = []',
-    'default comfy_quests = {}',
     '',
     'init python:',
     '    def comfy_has(item_id):',
@@ -486,12 +495,49 @@ app.post('/api/export-rpy', (req, res) => {
     '            return True',
     '        return False',
     '',
+    '    def comfy_quest_start(quest_id):',
+    '        setattr(store, quest_id + "_active", True)',
+    '        setattr(store, quest_id + "_stage", 1)',
+    '        setattr(store, quest_id + "_completed", False)',
+    '',
     '    def comfy_quest_stage(quest_id):',
-    '        return comfy_quests.get(quest_id, -1)',
+    '        return getattr(store, quest_id + "_stage", 0)',
     '',
     '    def comfy_quest_advance(quest_id):',
-    '        comfy_quests[quest_id] = comfy_quests.get(quest_id, -1) + 1',
+    '        meta = comfy_quests_meta.get(quest_id)',
+    '        if not meta: return',
+    '        cur = getattr(store, quest_id + "_stage", 0)',
+    '        nxt = cur + 1',
+    '        if nxt >= len(meta["stages"]):',
+    '            setattr(store, quest_id + "_active", False)',
+    '            setattr(store, quest_id + "_completed", True)',
+    '        else:',
+    '            setattr(store, quest_id + "_stage", nxt)',
+    '',
+    '    def comfy_quest_active(quest_id):',
+    '        return getattr(store, quest_id + "_active", False)',
+    '',
+    '    def comfy_quest_completed(quest_id):',
+    '        return getattr(store, quest_id + "_completed", False)',
   ].join('\n');
+
+  // comfy_quests_meta — quest metadata dict (stages + hints), regenerated each export
+  const allQuestNodes = Object.values(nodeById).filter(n => n.type === 'renpy/quest');
+  const questsMetaPy = allQuestNodes.length
+    ? `default comfy_quests_meta = {\n${allQuestNodes.map(q => {
+        const qStages = parseStages(q.properties.stages);
+        const stagesArr = qStages.map(s => `"${s.text.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`).join(', ');
+        const hintsArr  = qStages.map(s => `"${s.hint.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`).join(', ');
+        const qTitle = (q.properties.title || q.properties.id).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+        return `    "${q.properties.id}": {"title": "${qTitle}", "stages": [${stagesArr}], "hints": [${hintsArr}]},`;
+      }).join('\n')}\n}`
+    : `default comfy_quests_meta = {}`;
+
+  // event_flags — default {evtId}_seen for each event node
+  const allEventNodes = Object.values(nodeById).filter(n => n.type === 'renpy/event' && n.properties?.id);
+  const eventFlagsContent = allEventNodes.length
+    ? allEventNodes.map(n => `default ${n.properties.id}_seen = False`).join('\n')
+    : '# Žádné eventy';
 
   const charLines = allChars.filter(c => c.id).map(c => {
     const name = (c.name || c.id).replace(/"/g, '\\"');
@@ -507,12 +553,18 @@ app.post('/api/export-rpy', (req, res) => {
       initFileContent = [
         markerBlock('__comfy__', 'init', initContent),
         '',
+        markerBlock('__comfy__', 'quests_meta', questsMetaPy),
+        '',
+        markerBlock('__comfy__', 'event_flags', eventFlagsContent),
+        '',
         markerBlock('__comfy__', 'characters', charsContent),
         '',
       ].join('\n');
       created.push('comfy_init.rpy');
     } else {
       initFileContent = updateMarkerRegion(existingInit, '__comfy__', 'init', initContent);
+      initFileContent = updateMarkerRegion(initFileContent, '__comfy__', 'quests_meta', questsMetaPy);
+      initFileContent = updateMarkerRegion(initFileContent, '__comfy__', 'event_flags', eventFlagsContent);
       initFileContent = updateMarkerRegion(initFileContent, '__comfy__', 'characters', charsContent);
       updated.push('comfy_init.rpy');
     }
@@ -523,12 +575,87 @@ app.post('/api/export-rpy', (req, res) => {
 
   const note = null;
 
+  // Emit comfy_screens.rpy (quest log UI) — only on first export, never overwrite
+  const screensFile = path.join(gameDir, 'comfy_screens.rpy');
+  if (!fs.existsSync(screensFile)) {
+    const screensContent = [
+      '# comfy-renpy: Quest log UI',
+      '# Tento soubor byl vygenerován při prvním exportu.',
+      '# Můžeš ho libovolně upravit — comfy-renpy ho znovu nepřepíše.',
+      '# Pokud chceš výchozí podobu obnovit, smaž soubor a spusť Export znovu.',
+      '',
+      'screen comfy_quest_button():',
+      '    zorder 100',
+      '    if comfy_quests_meta:',
+      '        $ active_count = sum(1 for q in comfy_quests_meta if comfy_quest_active(q))',
+      '        $ done_count = sum(1 for q in comfy_quests_meta if comfy_quest_completed(q))',
+      '        if active_count + done_count > 0:',
+      '            frame:',
+      '                align (0.98, 0.02)',
+      '                background "#000000aa"',
+      '                padding (10, 6)',
+      '                textbutton "Questy [active_count]" action Show("comfy_quest_log"):',
+      '                    text_size 18',
+      '                    text_color "#ffffff"',
+      '                    text_hover_color "#f1c40f"',
+      '',
+      'screen comfy_quest_log():',
+      '    modal True',
+      '    zorder 200',
+      '    frame:',
+      '        align (0.5, 0.5)',
+      '        xsize 640',
+      '        background "#1a1a1aee"',
+      '        padding (24, 20)',
+      '        vbox:',
+      '            spacing 12',
+      '            text "Questy" size 28 color "#ecf0f1"',
+      '            $ actives = [q for q in comfy_quests_meta if comfy_quest_active(q)]',
+      '            $ dones = [q for q in comfy_quests_meta if comfy_quest_completed(q)]',
+      '            if actives:',
+      '                text "Aktivní" size 18 color "#f39c12"',
+      '                for qid in actives:',
+      '                    $ meta = comfy_quests_meta[qid]',
+      '                    $ stage = comfy_quest_stage(qid)',
+      '                    $ stage_text = meta["stages"][stage] if stage < len(meta["stages"]) else ""',
+      '                    $ hint_text = meta["hints"][stage] if stage < len(meta["hints"]) else ""',
+      '                    $ stage_plus_one = stage + 1',
+      '                    $ total = len(meta["stages"])',
+      '                    frame:',
+      '                        background "#2c3e5099"',
+      '                        padding (12, 8)',
+      '                        xfill True',
+      '                        vbox:',
+      '                            spacing 4',
+      '                            text meta["title"] size 16 color "#ecf0f1"',
+      '                            text "Krok [stage_plus_one]/[total]: [stage_text]" size 14 color "#bdc3c7"',
+      '                            if hint_text:',
+      '                                text "Hint: [hint_text]" size 13 color "#95a5a6" italic True',
+      '            if dones:',
+      '                text "Dokončené" size 18 color "#27ae60"',
+      '                for qid in dones:',
+      '                    $ meta = comfy_quests_meta[qid]',
+      '                    text meta["title"] size 14 color "#7f8c8d"',
+      '            if not actives and not dones:',
+      '                text "Žádné questy." size 14 color "#7f8c8d"',
+      '            textbutton "Zavřít" action Hide("comfy_quest_log"):',
+      '                xalign 1.0',
+      '                text_size 16',
+    ].join('\n');
+    try {
+      fs.writeFileSync(screensFile, screensContent + '\n', 'utf8');
+      created.push('comfy_screens.rpy');
+    } catch (e) {
+      errors.push(`comfy_screens.rpy: ${e.message}`);
+    }
+  }
+
   // Wire up script.rpy to jump to start location
   let scriptConflict = null;
   const startLoc = pickStartLocation(graphData.nodes);
   if (startLoc) {
     const scriptFile = path.join(gameDir, 'script.rpy');
-    const startLabel = `label start:\n    jump location_${startLoc.properties.id}`;
+    const startLabel = `label start:\n    show screen comfy_quest_button\n    jump location_${startLoc.properties.id}`;
     try {
       if (!fs.existsSync(scriptFile)) {
         fs.writeFileSync(scriptFile, markerBlock('__comfy__', 'start', startLabel) + '\n', 'utf8');
@@ -959,6 +1086,16 @@ app.post('/api/wire-script', (req, res) => {
 function pickStartLocation(nodes) {
   const locs = (nodes || []).filter(n => n.type === 'renpy/location' && n.properties?.id);
   return locs.find(n => n.properties.isStart) || locs[0] || null;
+}
+
+function parseStages(stagesStr) {
+  return (stagesStr || '').split('\n').map(line => {
+    const trimmed = line.trim();
+    if (!trimmed) return null;
+    const idx = trimmed.indexOf('|');
+    if (idx === -1) return { text: trimmed, hint: '' };
+    return { text: trimmed.slice(0, idx).trim(), hint: trimmed.slice(idx + 1).trim() };
+  }).filter(Boolean);
 }
 
 function markerBlock(id, kind, content) {

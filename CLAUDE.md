@@ -62,11 +62,11 @@ npm start      # Jen Express :3001 (servíruje dist/)
 | Typ | Barva | Porty | Klíčové properties |
 |---|---|---|---|
 | `renpy/location` | Modrá | inputs: blank (auto-expands) / outputs: dynamické exity | `id`, `label`, `description`, `exits[]`, `isStart` |
-| `renpy/event` | Oranžová | žádné | `id`, `location_id`, `trigger`, `trigger_label`, `prerequisite`, `time`, `repeatable`, `priority`, `notes` |
-| `renpy/item` | Fialová | žádné | `id`, `name`, `description` |
+| `renpy/event` | Oranžová | žádné | `id`, `location_id`, `trigger`, `trigger_label`, `prerequisite`, `time`, `repeatable`, `priority`, `notes`, `body_text?` |
+| `renpy/item` | Fialová | žádné | `id`, `name`, `description`, `body_text?` |
 | `renpy/character` | Teal | žádné | `id`, `name`, `voice`, `sprite_id` |
 | `renpy/note` | Žlutohnědá | žádné | `text` (zobrazuje se přímo na uzlu, jen pro tvůrce) |
-| `renpy/quest` | Tmavě červená | žádné | `id`, `title`, `description`, `stages` (newline-separated) |
+| `renpy/quest` | Tmavě červená | žádné | `id`, `title`, `description`, `stages` (newline-separated, každý řádek volitelně `fáze | hint`) |
 
 ### Location exits (dynamické porty)
 
@@ -144,8 +144,32 @@ Každý Ren'Py projekt spouští hru z `label start:` v `script.rpy`. Po exportu
 
 Export generuje hratelnou hru od prvního spuštění:
 - **kind=body** marker (mezi header a exits/footer) — první export vyplní popis lokace nebo placeholder dialog. Re-export body **nikdy nepřepíše** (je to lidský/AI prostor).
-- **comfy_init.rpy** — `default comfy_inventory = []`, `comfy_has(id)`, `comfy_give(id)`, `comfy_quest_stage/advance()`, plus `define` pro každou postavu.
+- **body_text property** na Event a Item uzlu — volitelný obsah pro první export. Pokud je nastaven, nahradí placeholder při prvním zápisu body markeru. Re-export stejně nikdy nepřepíše.
+- **comfy_init.rpy** — `default comfy_inventory = []`, `comfy_quests_meta` dict, per-quest state helpery, `default {evtId}_seen = False` pro každý event, `define` pro každou postavu.
 - **Item pickup** — v exits menu lokace se přidají volby `"Sebrat: {name}" if not comfy_has("{id}"):` pro každý item s `location_id` shodujícím se s lokací.
+
+### Quest log UI
+
+Export generuje `comfy_screens.rpy` (jen pokud neexistuje — emit-once, nikdy nepřepisuje). Soubor obsahuje:
+
+- **`screen comfy_quest_button()`** — tlačítko "Questy N" vpravo nahoře (zorder 100). Zobrazí se, jakmile je alespoň jeden quest aktivní nebo dokončený.
+- **`screen comfy_quest_log()`** — modální panel se seznamem aktivních (+ hint k aktuálnímu kroku) a dokončených questů.
+
+**`comfy_init.rpy`** obsahuje marker `kind=quests_meta` — dict `comfy_quests_meta` s title/stages/hints pro každý quest, regenerovaný při každém exportu z grafu (ukazuje aktuální stages + hinty bez sahání na `comfy_screens.rpy`).
+
+**Quest helpery** v `comfy_init.rpy`:
+- `comfy_quest_start(id)` — aktivuje quest, nastaví stage=1
+- `comfy_quest_stage(id)` — vrátí aktuální stage (int)
+- `comfy_quest_advance(id)` — posune stage; pokud stage >= len(stages), označí quest jako completed
+- `comfy_quest_active(id)` / `comfy_quest_completed(id)` — bool stav
+
+**Stages s hinty**: každý řádek `stages` textarea může mít formát `text fáze | hint pro hráče`. Separátor `|` je volitelný.
+
+**`{evtId}_seen`**: `comfy_init.rpy` generuje `default {evtId}_seen = False` pro každý event. Event footer marker automaticky nastavuje `$ {evtId}_seen = True` po skončení eventu.
+
+**Quest button show**: `label start:` v `script.rpy` obsahuje `show screen comfy_quest_button` před `jump location_{id}`.
+
+**Customizace**: uživatel edituje `comfy_screens.rpy` přímo — barvy, pozice, layout. Re-export soubor nikdy nepřepíše. Smazání souboru + re-export obnoví výchozí podobu.
 
 ### AI write-to-file
 
