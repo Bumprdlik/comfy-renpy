@@ -177,16 +177,18 @@
             <div class="help-step-num">3</div>
             <div class="help-step-body">
               <strong>Vytvoř lokace a propoj je</strong>
-              <p>Tlačítkem <strong>+ Location</strong> přidej místnosti. V pravém panelu pojmenuj každou lokaci a přidej <em>exity</em> (směry, kudy se dá odejít). Pak přetáhni drát z exit portu jedné lokace na vstup druhé — tak vzniká mapa.</p>
+              <p>V dropdownu <strong>Přidat ▾</strong> vyber <em>Location</em> (nebo stiskni <kbd>L</kbd>). V pravém panelu pojmenuj každou lokaci a přidej <em>exity</em> (směry, kudy se dá odejít). Pak přetáhni drát z exit portu jedné lokace na vstup druhé — tak vzniká mapa.</p>
             </div>
           </li>
           <li>
             <div class="help-step-num">4</div>
             <div class="help-step-body">
               <strong>Přidej eventy, itemy a postavy</strong>
-              <p><strong>+ Event</strong> — scéna nebo událost vázaná na lokaci.<br>
-              <strong>+ Item</strong> — předmět ve hře. Každý item dostane pickup label a automaticky se přidá do menu lokace, kde se nachází.<br>
-              <strong>+ Character</strong> — postava; při exportu se vygeneruje <code>define</code> řádek do <code>comfy_init.rpy</code>.</p>
+              <p>Všechny typy uzlů jsou v dropdownu <strong>Přidat ▾</strong> (nebo klávesovými zkratkami):<br>
+              <strong>Event</strong> — scéna nebo událost vázaná na lokaci.<br>
+              <strong>Item</strong> — předmět ve hře. Automaticky se přidá do menu lokace jako volba "Sebrat".<br>
+              <strong>Character</strong> — postava; při exportu se vygeneruje <code>define</code> řádek do <code>comfy_init.rpy</code>.<br>
+              <strong>Quest</strong> — úkol s fázemi a hinty pro hráče.</p>
             </div>
           </li>
           <li>
@@ -202,7 +204,7 @@
             <div class="help-step-num">6</div>
             <div class="help-step-body">
               <strong>Sleduj postup přes Scan</strong>
-              <p>Tlačítko <strong>Scan</strong> zkontroluje stav každého uzlu a zobrazí barevný badge na uzlu.</p>
+              <p><strong>Kontroly ▾</strong> → <strong>Stav .rpy souborů</strong> zkontroluje stav každého uzlu a zobrazí barevný badge na uzlu.</p>
               <div class="help-legend">
                 <span><span class="dot" style="background:#2ecc71"></span> written</span>
                 <span><span class="dot" style="background:#f39c12"></span> stub</span>
@@ -327,7 +329,7 @@ label location_kitchen:
         <h3>AI generování dialogů</h3>
         <p>V properties panelu eventu nebo lokace klikni na <strong>✨ Generovat</strong>. AI vytvoří dialog podle popisu uzlu, postav a itemů v lokaci. Tlačítkem <strong>💾 Zapsat do souboru</strong> se dialog zapíše přímo do sekce <code>kind=body</code> — bez nutnosti kopírovat do IDE.</p>
 
-        <h3>Scan — stavy uzlů</h3>
+        <h3>Stav .rpy souborů — stavy uzlů</h3>
         <div class="prop-row"><span class="prop-name"><span class="dot" style="background:#2ecc71;margin-right:4px"></span>written</span><span class="prop-desc">Soubor existuje a má dialogové řádky (uvozovky, <code>jump</code>, <code>show</code>, <code>menu</code>…).</span></div>
         <div class="prop-row"><span class="prop-name"><span class="dot" style="background:#f39c12;margin-right:4px"></span>stub</span><span class="prop-desc">Soubor existuje, marker je přítomen, ale žádný dialog zatím není napsán.</span></div>
         <div class="prop-row"><span class="prop-name"><span class="dot" style="background:#7f8c8d;margin-right:4px"></span>missing</span><span class="prop-desc">Soubor pro tento uzel neexistuje — spusť Export.</span></div>
