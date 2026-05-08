@@ -230,6 +230,12 @@ app.post('/api/export-rpy', (req, res) => {
     }
   }
 
+  // Lookup by properties.id → node
+  const nodeByPropId = {};
+  for (const n of Object.values(nodeById)) {
+    if (n.properties && n.properties.id) nodeByPropId[n.properties.id] = n;
+  }
+
   // Build exit connection map: {nodeId: {outputSlot: targetLocationId}}
   const exitTargets = {};
   for (const link of (graphData.links || [])) {
@@ -310,7 +316,11 @@ app.post('/api/export-rpy', (req, res) => {
       // navigation exits
       for (const exit of allExits) {
         if (exit.targetId) {
-          exitsLines.push(`        "${exit.name}":`);
+          const targetNode = nodeByPropId[exit.targetId];
+          const destLabel  = (targetNode && targetNode.properties && targetNode.properties.label)
+            ? targetNode.properties.label.replace(/"/g, '\\"')
+            : exit.name;
+          exitsLines.push(`        "${destLabel}":`);
           exitsLines.push(`            jump location_${exit.targetId}`);
         } else {
           exitsLines.push(`        "${exit.name}":  # nepropojeno`);
@@ -320,8 +330,9 @@ app.post('/api/export-rpy', (req, res) => {
       // item pickups
       for (const item of itemsHere) {
         if (!item.id) continue;
-        const pickupName = (item.name || item.id).replace(/"/g, '\\"');
-        exitsLines.push(`        "Sebrat: ${pickupName}" if not comfy_has("${item.id}"):`);
+        const pickupName  = (item.name || item.id).replace(/"/g, '\\"');
+        const extraCond   = item.pickup_condition ? ` and (${item.pickup_condition})` : '';
+        exitsLines.push(`        "Sebrat: ${pickupName}" if not comfy_has("${item.id}")${extraCond}:`);
         exitsLines.push(`            call item_${item.id}`);
       }
       exitsLines.push(`    jump ${labelName}`);

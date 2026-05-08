@@ -28,6 +28,7 @@ export interface ItemProps {
   description: string;
   location_id: string;
   body_text?: string;
+  pickup_condition?: string;
 }
 
 export interface CharacterProps {

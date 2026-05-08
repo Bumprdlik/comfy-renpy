@@ -91,6 +91,7 @@ export function renderPanel(node: LGraphNode): void {
     html += makeField('prop-name',     'Název',              'text',     p['name']);
     html += makeField('prop-desc',     'Popis',              'textarea', p['description']);
     html += makeField('prop-location', 'Lokace (location_id)', 'text',   p['location_id']);
+    html += makeField('prop-pickup-cond', 'Podmínka sebrání (Python)', 'text', p['pickup_condition'], {});
     html += makeField('prop-body', 'Default dialog (jen pro první export)', 'textarea', p['body_text'], { rows: 5, help: 'Volitelně: dialog zapsaný do .rpy při prvním exportu. Comfy-renpy body marker pak nikdy nepřepíše.' });
 
   } else if (node.type === 'renpy/character') {
@@ -165,10 +166,11 @@ function attachListeners(node: LGraphNode): void {
     bind('prop-notes',         'notes');
     bind('prop-body',          'body_text');
   } else if (node.type === 'renpy/item') {
-    bind('prop-name',     'name');
-    bind('prop-desc',     'description');
-    bind('prop-location', 'location_id');
-    bind('prop-body',     'body_text');
+    bind('prop-name',         'name');
+    bind('prop-desc',         'description');
+    bind('prop-location',     'location_id');
+    bind('prop-pickup-cond',  'pickup_condition');
+    bind('prop-body',         'body_text');
   } else if (node.type === 'renpy/character') {
     bind('prop-name',     'name');
     bind('prop-location', 'location_id');

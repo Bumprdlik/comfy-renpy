@@ -209,6 +209,7 @@
         "name": "Stará mapa",
         "description": "Roztrhaná mapa s vyznačeným místem hluboko v lese. Rukopis je elfský.",
         "location_id": "les",
+        "pickup_condition": "comfy_quest_active(\"tajemstvi_lesa\") and comfy_quest_stage(\"tajemstvi_lesa\") >= 2",
         "body_text": "\"U paty kamenného sloupu leží roztrhaná mapa.\"\n\"Rukopis je elfský — nedokážeš ho přečíst, ale obrázek ti napovídá.\"\n$ comfy_give(\"stara_mapa\")\nif comfy_quest_active(\"tajemstvi_lesa\") and comfy_quest_stage(\"tajemstvi_lesa\") == 2:\n    \"Tohle musí být ta mapa, o které mluvila Elara!\"\n    $ comfy_quest_advance(\"tajemstvi_lesa\")"
       }
     },
