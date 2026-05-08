@@ -18,10 +18,10 @@ const TYPE_NAMES: Record<string, string> = {
   'renpy/quest':     'Quest',
 };
 
-function makeField(id: string, label: string, type: string, value: unknown, opts: { choices?: Array<{value: string; label: string}> } = {}): string {
+function makeField(id: string, label: string, type: string, value: unknown, opts: { choices?: Array<{value: string; label: string}>; rows?: number } = {}): string {
   if (type === 'textarea') {
     return `<div class="field"><label for="${id}">${label}</label>` +
-      `<textarea id="${id}" rows="3">${escHtml(value ?? '')}</textarea></div>`;
+      `<textarea id="${id}" rows="${opts.rows ?? 3}">${escHtml(value ?? '')}</textarea></div>`;
   }
   if (type === 'select') {
     const options = (opts.choices ?? []).map(c =>
@@ -102,7 +102,7 @@ export function renderPanel(node: LGraphNode): void {
   } else if (node.type === 'renpy/quest') {
     html += makeField('prop-title',  'Název questu', 'text',     p['title']);
     html += makeField('prop-desc',   'Popis',         'textarea', p['description']);
-    html += makeField('prop-stages', 'Fáze (každá na řádku)', 'textarea', p['stages']);
+    html += makeField('prop-stages', 'Fáze (každá na řádku)', 'textarea', p['stages'], { rows: 6 });
   }
 
   propsBody.innerHTML = html;
