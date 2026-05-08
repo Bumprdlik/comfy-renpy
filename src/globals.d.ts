@@ -139,4 +139,7 @@ interface Window {
   closeScriptConflict(): void;
   scOverlayClick(e: MouseEvent): void;
   wireScript(mode: string): Promise<void>;
+  closeScanModal(): void;
+  scanOverlayClick(e: MouseEvent): void;
+  jumpToNode(lgNodeId: number): void;
 }

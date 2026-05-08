@@ -360,6 +360,17 @@ label location_kitchen:
   </div>
 </div>
 
+<!-- Scan modal -->
+<div id="scan-overlay" onclick="scanOverlayClick(event)">
+  <div id="scan-modal">
+    <h2 id="scan-title">Scan</h2>
+    <div class="val-body" id="scan-body"></div>
+    <div class="val-actions">
+      <button onclick="closeScanModal()">Zavřít</button>
+    </div>
+  </div>
+</div>
+
 <!-- Script conflict modal -->
 <div id="sc-overlay" class="modal-overlay" onclick="scOverlayClick(event)">
   <div id="sc-modal">

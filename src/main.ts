@@ -23,6 +23,7 @@ import { openHelp, closeHelp, helpTab, helpOverlayClick, maybeShowHelp } from '.
 import { validateGraph, closeVal, valOverlayClick } from './ui/modals/validate';
 import { previewRpy, closePreview, previewOverlayClick } from './ui/modals/preview';
 import { closeScriptConflict, scOverlayClick, wireScript } from './ui/modals/script-conflict';
+import { closeScanModal, scanOverlayClick } from './ui/modals/scan';
 
 LiteGraph.NODE_TITLE_HEIGHT = 22;
 LiteGraph.NODE_SLOT_HEIGHT = 20;
@@ -168,6 +169,15 @@ window.previewOverlayClick = previewOverlayClick;
 window.closeScriptConflict = closeScriptConflict;
 window.scOverlayClick   = scOverlayClick;
 window.wireScript       = wireScript;
+window.closeScanModal   = closeScanModal;
+window.scanOverlayClick = scanOverlayClick;
+window.jumpToNode       = (lgNodeId: number) => {
+  const node = graph.getNodeById(lgNodeId);
+  if (!node) return;
+  closeScanModal();
+  lgCanvas.centerOnNode(node);
+  lgCanvas.selectNode(node, false);
+};
 window.updateExit       = updateExit;
 window.updateExitReturn = updateExitReturn;
 window.toggleExitBidir  = toggleExitBidir;

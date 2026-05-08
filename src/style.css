@@ -420,6 +420,34 @@ button.primary:hover { background: var(--accent-hover); }
 .val-ok { font-size: 12px; color: var(--ok); padding: 8px 0; }
 .val-actions { display: flex; gap: 8px; justify-content: flex-end; padding: 10px 20px 14px; border-top: 1px solid var(--bg-input); flex-shrink: 0; }
 
+/* ── Scan modal ── */
+#scan-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.65); z-index: 110;
+  align-items: center; justify-content: center;
+}
+#scan-overlay.open { display: flex; }
+#scan-modal {
+  background: var(--bg-panel); border: 1px solid var(--border-input); border-radius: 6px;
+  width: 480px; max-width: 95vw; max-height: 80vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 8px 40px rgba(0,0,0,.6);
+}
+#scan-modal h2 { font-size: 14px; font-weight: 600; color: var(--text); padding: 16px 20px 0; }
+.scan-row {
+  display: flex; align-items: center; gap: 9px;
+  padding: 5px 8px; border-radius: 4px; cursor: pointer;
+  font-size: 12px; color: #bbb; margin-bottom: 2px;
+  transition: background .12s;
+}
+.scan-row:hover { background: rgba(255,255,255,.06); color: #eee; }
+.scan-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.scan-type { font-size: 11px; color: #666; flex-shrink: 0; width: 58px; }
+.scan-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.scan-status { font-size: 10px; flex-shrink: 0; color: #555; }
+.scan-section { font-size: 10px; color: var(--text-hint); text-transform: uppercase; letter-spacing: .7px; margin: 10px 0 4px; }
+.scan-drift { font-size: 11px; color: #e74c3c; font-family: monospace; word-break: break-all; margin-bottom: 4px; }
+
 /* ── Script conflict modal ── */
 #sc-overlay {
   display: none; position: fixed; inset: 0;

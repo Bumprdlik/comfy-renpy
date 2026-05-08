@@ -4,6 +4,7 @@ import { saveExportSnapshot } from './dirtyTracker';
 import { apiExportRpy, apiScan, apiLaunch, apiValidate, apiOpenGameDir, apiOpenVsCode } from '../api';
 import { showValModal } from './modals/validate';
 import { openScriptConflictModal } from './modals/script-conflict';
+import { openScanModal } from './modals/scan';
 import { updateStats } from './stats';
 
 const canvasEl = document.getElementById('graph-canvas') as HTMLCanvasElement;
@@ -95,12 +96,9 @@ export async function scanFiles(): Promise<void> {
       const s = data.nodes[node.properties['id'] as string];
       if (s !== undefined) { node._status = s; node.setDirtyCanvas(true); }
     }
-    if (data.drift?.length) {
-      alert('Drift detekce:\n' + data.drift.join('\n'));
-    } else {
-      statusEl.textContent = 'Scan OK';
-      statusEl.style.color = '#2ecc71';
-    }
+    statusEl.textContent = 'Scan OK';
+    statusEl.style.color = '#2ecc71';
+    openScanModal(data);
   } catch (e) {
     alert('Chyba scanu: ' + (e as Error).message);
   }
