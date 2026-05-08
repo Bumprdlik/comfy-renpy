@@ -12,6 +12,7 @@ const noKeyHint  = document.getElementById('gen-no-key')    as HTMLElement;
 
 let _prompt  = '';
 let _nodeId  = -1;
+let _hasKey  = false;
 
 export function buildPrompt(nodeId: number): string {
   const node = graph.getNodeById(nodeId);
@@ -142,6 +143,7 @@ export function openGenerate(nodeId: number, hasKey: boolean): void {
   if (!node) return;
   _nodeId = nodeId;
   _prompt = buildPrompt(nodeId);
+  _hasKey = hasKey;
 
   titleEl.textContent = `✨ Generovat dialog — ${node.properties['id'] ?? nodeId}`;
   promptArea.value    = _prompt;
@@ -173,6 +175,11 @@ export async function copyGenPrompt(): Promise<void> {
 }
 
 export async function runGenerate(): Promise<void> {
+  if (!_hasKey) {
+    statusEl.textContent = '✗ API klíč není nastaven — nastav ho v Nastavení';
+    statusEl.style.color = '#e74c3c';
+    return;
+  }
   statusEl.textContent = '⟳ Generuji…';
   statusEl.style.color = '#aaa';
   resultPre.hidden = true;
@@ -181,6 +188,7 @@ export async function runGenerate(): Promise<void> {
   try {
     const data = await apiGenerateDialogue(_prompt);
     if (data.error) throw new Error(data.error);
+    if (!data.hasKey) throw new Error('API klíč není nastaven — nastav ho v Nastavení');
     if (data.result) {
       resultPre.textContent = data.result;
       resultPre.hidden = false;
